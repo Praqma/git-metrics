@@ -5,7 +5,6 @@ Usage:
     open_branches.py (-h | --help)
 """
 
-import sys
 import time
 from subprocess import Popen, PIPE
 from functools import partial
