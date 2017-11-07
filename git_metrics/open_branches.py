@@ -2,6 +2,7 @@
 
 Usage:
     open_branches.py <path_to_git_repo>
+    open_branches.py --plot <path_to_git_repo>
     open_branches.py (-h | --help)
 """
 
@@ -15,27 +16,52 @@ from git_metrics.git import for_each_ref, log
 from git_metrics.parser import columns
 
 
-def main(run):
+def print_to_stdout(run):
     now = int(time.time())
     for author_time, ref in commit_author_time_and_branch_ref(run):
         print(f"{now - int(author_time)}, {ref}")
 
 
 def commit_author_time_and_branch_ref(run):
-    get_refs = for_each_ref('refs/remotes/origin/**', format='%(refname) %(authordate:unix)')
+    get_refs = for_each_ref('refs/remotes/origin/**', format='%(refname:short) %(authordate:unix)')
     with run(get_refs) as program:
         for branch, t in columns(program.stdout):
             get_time = log(f"origin/master..{branch}", format='%at')
             with run(get_time) as inner_program:
                 for author_time, in columns(inner_program.stdout):
-                    yield author_time, branch
+                    yield int(author_time), branch
+
+
+def plot_it(run):
+    import matplotlib.pyplot as plt
+    from pandas import DataFrame
+
+    now = int(time.time())
+    gen = commit_author_time_and_branch_ref(run)
+    df = DataFrame(gen, columns=("time", "ref"))
+    df["age"] = now - df["time"]
+    df["age in days"] = df.age // 86400
+    plt.xticks(rotation='vertical')
+    plt.legend(["commit age in days"])
+    plt.plot(df.ref, df["age in days"], 'bo')
+    plt.plot(df.ref.unique(), df.groupby("ref")["age in days"].median(), 'r^')
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == "__main__":
     arguments = docopt.docopt(__doc__)
-    main(partial(
-        Popen,
-        stdout=PIPE,
-        cwd=arguments['<path_to_git_repo>'],
-        universal_newlines=True
-    ))
+    if arguments['--plot']:
+        plot_it(partial(
+            Popen,
+            stdout=PIPE,
+            cwd=arguments['<path_to_git_repo>'],
+            universal_newlines=True
+        ))
+    else:
+        print_to_stdout(partial(
+            Popen,
+            stdout=PIPE,
+            cwd=arguments['<path_to_git_repo>'],
+            universal_newlines=True
+        ))
