@@ -17,13 +17,18 @@ from git_metrics.parser import columns
 
 def main(run):
     now = int(time.time())
+    for author_time, ref in commit_author_time_and_branch_ref(run):
+        print(f"{now - int(author_time)}, {ref}")
+
+
+def commit_author_time_and_branch_ref(run):
     get_refs = for_each_ref('refs/remotes/origin/**', format='%(refname) %(authordate:unix)')
     with run(get_refs) as program:
         for branch, t in columns(program.stdout):
             get_time = log(f"origin/master..{branch}", format='%at')
             with run(get_time) as inner_program:
                 for author_time, in columns(inner_program.stdout):
-                    print(f"{now - int(author_time)}, {branch}")
+                    yield author_time, branch
 
 
 if __name__ == "__main__":
