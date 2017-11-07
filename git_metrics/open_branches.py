@@ -4,7 +4,7 @@ import time
 import sys
 
 from git_metrics.git import for_each_ref, log
-from git_metrics.parser import columns, decode
+from git_metrics.parser import columns
 cwd = sys.argv[1]
 
 
