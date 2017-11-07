@@ -2,3 +2,4 @@ pytest
 docopt
 matplotlib
 pandas
+requests

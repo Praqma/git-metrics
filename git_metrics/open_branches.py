@@ -3,6 +3,7 @@
 Usage:
     open_branches.py <path_to_git_repo>
     open_branches.py --plot <path_to_git_repo>
+    open_branches.py --elastic=<elastic_url> --index=<elastic_index> <path_to_git_repo>
     open_branches.py (-h | --help)
 """
 
@@ -49,19 +50,27 @@ def plot_it(run):
     plt.show()
 
 
+def send_to_elastic(run, elastic_host, index):
+    import requests
+    now = int(time.time())
+    for t, r in commit_author_time_and_branch_ref(run):
+        requests.post(
+            f"http://{elastic_host}/{index}/open_branches",
+            json={'git_ref': r, 'time': t, 'age': (now - t)}
+        )
+
+
 if __name__ == "__main__":
     arguments = docopt.docopt(__doc__)
+    run = partial(
+        Popen,
+        stdout=PIPE,
+        cwd=arguments['<path_to_git_repo>'],
+        universal_newlines=True
+    )
     if arguments['--plot']:
-        plot_it(partial(
-            Popen,
-            stdout=PIPE,
-            cwd=arguments['<path_to_git_repo>'],
-            universal_newlines=True
-        ))
+        plot_it(run)
+    elif arguments['--elastic']:
+        send_to_elastic(run, arguments['--elastic'], arguments['--index'])
     else:
-        print_to_stdout(partial(
-            Popen,
-            stdout=PIPE,
-            cwd=arguments['<path_to_git_repo>'],
-            universal_newlines=True
-        ))
+        print_to_stdout(run)
