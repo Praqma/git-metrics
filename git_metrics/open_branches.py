@@ -18,7 +18,7 @@ def run(cmd):
 
 
 now = int(time.time())
-get_refs = for_each_ref('refs/remotes/origin/*', format='%(refname) %(authordate:unix)')
+get_refs = for_each_ref('refs/remotes/origin/**', format='%(refname) %(authordate:unix)')
 with run(get_refs) as program:
     for branch, t in columns(program.stdout):
         get_time = log(f"origin/master..{branch}", format='%at')
