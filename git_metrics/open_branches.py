@@ -64,9 +64,16 @@ def send_to_elastic(run, elastic_host, index):
     import requests
     now = int(time.time())
     for t, r in commit_author_time_and_branch_ref(run):
+        age = (now - t)
         requests.post(
             f"http://{elastic_host}/{index}/open_branches",
-            json={'git_ref': r, 'time': t, 'age': (now - t)}
+            json={
+                'git_ref': r,
+                'time': t,
+                'time_in_days': t // 86400,
+                'age': age,
+                'age_in_days': age // 86400
+            }
         )
 
 
