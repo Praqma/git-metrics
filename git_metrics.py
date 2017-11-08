@@ -1,10 +1,10 @@
 """Calculate age of commits in open remote branches
 
 Usage:
-    open_branches.py <path_to_git_repo>
-    open_branches.py --plot <path_to_git_repo>
-    open_branches.py --elastic=<elastic_url> --index=<elastic_index> <path_to_git_repo>
-    open_branches.py (-h | --help)
+    git_metrics.py open-branches <path_to_git_repo>
+    git_metrics.py open-branches --plot <path_to_git_repo>
+    git_metrics.py open-branches --elastic=<elastic_url> --index=<elastic_index> <path_to_git_repo>
+    git_metrics.py (-h | --help)
 """
 
 import time
@@ -13,8 +13,8 @@ from functools import partial
 
 import docopt
 
-from git_metrics.git import for_each_ref, log
-from git_metrics.parser import columns
+from git import for_each_ref, log
+from columns import columns
 
 
 def print_to_stdout(run):

@@ -1,4 +1,4 @@
-from git_metrics.git import for_each_ref
+from git import for_each_ref
 
 
 def test_normal():

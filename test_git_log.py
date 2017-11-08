@@ -1,4 +1,4 @@
-from git_metrics.git import log
+from git import log
 
 
 def test_normal():

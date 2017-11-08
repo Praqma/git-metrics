@@ -1,4 +1,4 @@
-from git_metrics.parser import columns
+from columns import columns
 
 
 def test_single_column():
