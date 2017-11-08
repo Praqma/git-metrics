@@ -43,9 +43,19 @@ def plot_it(run):
     df["age"] = now - df["time"]
     df["age in days"] = df.age // 86400
     plt.xticks(rotation=40, horizontalalignment='right')
-    plt.legend(["commit age in days"])
-    plt.plot(df.ref, df["age in days"], 'bo')
-    plt.plot(df.ref.unique(), df.groupby("ref")["age in days"].median(), 'r^')
+    plt.plot(
+        df.ref,
+        df["age in days"],
+        'bo',
+        label="commit age in days"
+    )
+    plt.plot(
+        df.ref.unique(),
+        df.groupby("ref")["age in days"].median(),
+        'r^',
+        label="median commit age oin days"
+    )
+    plt.legend()
     plt.tight_layout()
     plt.show()
 
