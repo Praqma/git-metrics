@@ -19,3 +19,11 @@ def test_format():
         "for-each-ref",
         "--format=%(authordate:unix)"
     ]
+
+
+def test_sort():
+    assert for_each_ref(sort='v:refname') == [
+        "git",
+        "for-each-ref",
+        "--sort=v:refname"
+    ]
