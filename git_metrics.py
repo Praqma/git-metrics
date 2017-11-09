@@ -4,15 +4,21 @@ Usage:
     git_metrics.py open-branches <path_to_git_repo>
     git_metrics.py open-branches --plot <path_to_git_repo>
     git_metrics.py open-branches --elastic=<elastic_url> --index=<elastic_index> <path_to_git_repo>
-    git_metrics.py release-lead-time <path_to_git_repo>
+    git_metrics.py release-lead-time [--tag-pattern=<fn_match>] <path_to_git_repo>
+    git_metrics.py release-lead-time --plot [--tag-pattern=<fn_match>] <path_to_git_repo>
     git_metrics.py (-h | --help)
 """
-
 import time
+from fnmatch import fnmatch
 from subprocess import Popen, PIPE
 from functools import partial
+import csv
 
 import docopt
+import sys
+
+import matplotlib
+import matplotlib.dates
 
 from git import for_each_ref, log
 from columns import columns
@@ -32,6 +38,23 @@ def commit_author_time_and_branch_ref(run):
             with run(get_time) as inner_program:
                 for author_time, in columns(inner_program.stdout):
                     yield int(author_time), branch
+
+
+def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag):
+    get_refs = for_each_ref(
+        'refs/tags/**',
+        format='%(refname:short) %(*authordate:unix)%(authordate:unix)',
+        sort='v:refname'
+    )
+    with run(get_refs) as program:
+        tag_and_time = filter(lambda p: match_tag(p[0]), columns(program.stdout))
+        old_tag, old_author_time = next(tag_and_time)
+        for tag, tag_author_time in tag_and_time:
+            get_time = log(f"refs/tags/{old_tag}..refs/tags/{tag}", format='%at')
+            with run(get_time) as inner_program:
+                for commit_author_time, in columns(inner_program.stdout):
+                    yield int(commit_author_time), int(tag_author_time), old_tag, tag
+            old_tag, old_author_time = tag, tag_author_time
 
 
 def plot_open_branches_metrics(run):
@@ -54,7 +77,7 @@ def plot_open_branches_metrics(run):
         df.ref.unique(),
         df.groupby("ref")["age in days"].median(),
         'r^',
-        label="median commit age oin days"
+        label="median commit age in days"
     )
     plt.legend()
     plt.tight_layout()
@@ -78,6 +101,45 @@ def send_open_branches_metrics_to_elastic(run, elastic_host, index):
         )
 
 
+def plot_tags(data):
+    import matplotlib.pyplot as plt
+    from pandas import DataFrame
+
+    df = DataFrame(data, columns=("commit_time", "tag_time", "from_tag", "tag"))
+    df["age"] = df["tag_time"] - df["commit_time"]
+    df["label"] = df["from_tag"] + '..' + df["tag"]
+    df["tag_date"] = matplotlib.dates.epoch2num(df["tag_time"])
+    df["age in days"] = df.age // 86400
+    tmp = df[df["tag"] < "REL-4.4.10"]
+    age_in_days_ = tmp["age in days"]
+    df = df.sort_values('tag_time')
+    fig, ax = plt.subplots()
+    plt.plot_date(
+        df["tag_date"],
+        df["age in days"],
+        'bo',
+        label="commit age in days"
+    )
+    plt.plot_date(
+        df["tag_date"].unique(),
+        df.groupby("tag_date")["age in days"].median(),
+        'r^',
+        label="median commit age in days",
+
+    )
+    for tag_date, group in df.groupby("tag_date"):
+        ax.annotate(
+            group["label"].max(),
+            (tag_date, group["age in days"].max() + 5),
+            horizontalalignment='center',
+            verticalalignment='bottom',
+            rotation=90
+        )
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == "__main__":
     arguments = docopt.docopt(__doc__)
     run = partial(
@@ -94,4 +156,17 @@ if __name__ == "__main__":
         else:
             print_open_branches_metrics(run)
     else:
-        pass
+        pattern = arguments['--tag-pattern'] or '*'
+        data = commit_author_time_tag_author_time_and_from_to_tag_name(
+            run,
+            partial(fnmatch, pat=pattern)
+        )
+        if arguments['--plot']:
+            plot_tags(
+                data
+            )
+        else:
+            writer = csv.writer(sys.stdout, delimiter=',')
+            writer.writerows(
+                data
+            )
