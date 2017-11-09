@@ -4,6 +4,7 @@ Usage:
     git_metrics.py open-branches <path_to_git_repo>
     git_metrics.py open-branches --plot <path_to_git_repo>
     git_metrics.py open-branches --elastic=<elastic_url> --index=<elastic_index> <path_to_git_repo>
+    git_metrics.py release-lead-time <path_to_git_repo>
     git_metrics.py (-h | --help)
 """
 
@@ -17,7 +18,7 @@ from git import for_each_ref, log
 from columns import columns
 
 
-def print_to_stdout(run):
+def print_open_branches_metrics(run):
     now = int(time.time())
     for author_time, ref in commit_author_time_and_branch_ref(run):
         print(f"{now - int(author_time)}, {ref}")
@@ -33,7 +34,7 @@ def commit_author_time_and_branch_ref(run):
                     yield int(author_time), branch
 
 
-def plot_it(run):
+def plot_open_branches_metrics(run):
     import matplotlib.pyplot as plt
     from pandas import DataFrame
 
@@ -60,7 +61,7 @@ def plot_it(run):
     plt.show()
 
 
-def send_to_elastic(run, elastic_host, index):
+def send_open_branches_metrics_to_elastic(run, elastic_host, index):
     import requests
     now = int(time.time())
     for t, r in commit_author_time_and_branch_ref(run):
@@ -85,9 +86,12 @@ if __name__ == "__main__":
         cwd=arguments['<path_to_git_repo>'],
         universal_newlines=True
     )
-    if arguments['--plot']:
-        plot_it(run)
-    elif arguments['--elastic']:
-        send_to_elastic(run, arguments['--elastic'], arguments['--index'])
+    if arguments["open-branches"]:
+        if arguments['--plot']:
+            plot_open_branches_metrics(run)
+        elif arguments['--elastic']:
+            send_open_branches_metrics_to_elastic(run, arguments['--elastic'], arguments['--index'])
+        else:
+            print_open_branches_metrics(run)
     else:
-        print_to_stdout(run)
+        pass
