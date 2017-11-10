@@ -1,12 +1,15 @@
 """Calculate age of commits in open remote branches
 
 Usage:
-    git_metrics.py open-branches [--master-branch=<master_branch>] <path_to_git_repo>
-    git_metrics.py open-branches [--master-branch=<master_branch>] --plot <path_to_git_repo>
-    git_metrics.py open-branches [--master-branch=<master_branch>] --elastic=<elastic_url> --index=<elastic_index> <path_to_git_repo>
+    git_metrics.py open-branches [--master-branch=<branch>] <path_to_git_repo>
+    git_metrics.py open-branches [--master-branch=<branch>] --plot <path_to_git_repo>
+    git_metrics.py open-branches [--master-branch=<branch>] --elastic=<elastic_url> --index=<elastic_index> <path_to_git_repo>
     git_metrics.py release-lead-time [--tag-pattern=<fn_match>] <path_to_git_repo>
     git_metrics.py release-lead-time --plot [--tag-pattern=<fn_match>] <path_to_git_repo>
     git_metrics.py (-h | --help)
+
+    Options:
+        --master-branch=<branch>    example: origin/gh-pages
 """
 import time
 from fnmatch import fnmatch
