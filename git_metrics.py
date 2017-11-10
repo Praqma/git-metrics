@@ -143,8 +143,8 @@ def plot_tags(data):
 
 
 if __name__ == "__main__":
-    arguments = docopt.docopt(__doc__)
-    path_to_git_repo = arguments['<path_to_git_repo>']
+    flags = docopt.docopt(__doc__)
+    path_to_git_repo = flags['<path_to_git_repo>']
     repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
     run = partial(
         Popen,
@@ -152,22 +152,26 @@ if __name__ == "__main__":
         cwd=path_to_git_repo,
         universal_newlines=True
     )
-    if arguments["open-branches"]:
-        master_branch = arguments['--master-branch'] or 'origin/master'
+    if flags["open-branches"]:
+        master_branch = flags['--master-branch'] or 'origin/master'
         gen = commit_author_time_and_branch_ref(run, master_branch)
-        if arguments['--plot']:
+        if flags['--plot']:
             plot_open_branches_metrics(gen, repo_name)
-        elif arguments['--elastic']:
-            send_open_branches_metrics_to_elastic(gen, arguments['--elastic'], arguments['--index'])
+        elif flags['--elastic']:
+            send_open_branches_metrics_to_elastic(
+                gen,
+                flags['--elastic'],
+                flags['--index']
+            )
         else:
             print_open_branches_metrics(gen)
     else:
-        pattern = arguments['--tag-pattern'] or '*'
+        pattern = flags['--tag-pattern'] or '*'
         data = commit_author_time_tag_author_time_and_from_to_tag_name(
             run,
             partial(fnmatch, pat=pattern)
         )
-        if arguments['--plot']:
+        if flags['--plot']:
             plot_tags(
                 data
             )
