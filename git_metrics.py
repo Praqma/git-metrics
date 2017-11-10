@@ -15,7 +15,7 @@ import time
 from fnmatch import fnmatch
 from subprocess import Popen, PIPE
 from functools import partial
-import csv
+import csv, os
 
 import docopt
 import sys
@@ -60,7 +60,11 @@ def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag):
             old_tag, old_author_time = tag, tag_author_time
 
 
+<<<<<<< HEAD
 def plot_open_branches_metrics(gen):
+=======
+def plot_open_branches_metrics(run, repo_name):
+>>>>>>> graphs should have a title indicating which repo they are displaying data for
     import matplotlib.pyplot as plt
     from pandas import DataFrame
 
@@ -81,7 +85,7 @@ def plot_open_branches_metrics(gen):
         'r^',
         label="median commit age in days"
     )
-    plt.legend()
+    plt.title(f"Inventory - unmerged commits in {repo_name}")
     plt.tight_layout()
     plt.show()
 
@@ -144,17 +148,19 @@ def plot_tags(data):
 
 if __name__ == "__main__":
     arguments = docopt.docopt(__doc__)
+    path_to_git_repo = arguments['<path_to_git_repo>']
+    repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
     run = partial(
         Popen,
         stdout=PIPE,
-        cwd=arguments['<path_to_git_repo>'],
+        cwd=path_to_git_repo,
         universal_newlines=True
     )
     if arguments["open-branches"]:
         master_branch = arguments['--master-branch'] or 'origin/master'
         gen = commit_author_time_and_branch_ref(run, master_branch)
         if arguments['--plot']:
-            plot_open_branches_metrics(gen)
+            plot_open_branches_metrics(gen, repo_name)
         elif arguments['--elastic']:
             send_open_branches_metrics_to_elastic(gen, arguments['--elastic'], arguments['--index'])
         else:
