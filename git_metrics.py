@@ -141,6 +141,11 @@ def plot_tags(data):
     plt.tight_layout()
     plt.show()
 
+def get_branches(run):
+    with run(for_each_ref(format='%(refname)')) as cmd:
+        for line in cmd.stdout:
+            yield line.strip()
+
 
 if __name__ == "__main__":
     flags = docopt.docopt(__doc__)
@@ -154,6 +159,17 @@ if __name__ == "__main__":
     )
     if flags["open-branches"]:
         master_branch = flags['--master-branch'] or 'origin/master'
+        branches = list(get_branches(run))
+        if not any(branch.endswith(master_branch) for branch in branches):
+            error = partial(print, file=sys.stderr)
+            error(f"branch {master_branch} does not exist")
+            error()
+            error(f"try one of:")
+            for branch in branches:
+                error(branch)
+            error()
+            error("use -h for more help")
+            exit(1)
         gen = commit_author_time_and_branch_ref(run, master_branch)
         if flags['--plot']:
             plot_open_branches_metrics(gen, repo_name)
