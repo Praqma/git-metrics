@@ -31,9 +31,8 @@ from columns import columns
 
 
 def print_open_branches_metrics(gen):
-    now = int(time.time())
     for author_time, ref in gen:
-        print(f"{now - int(author_time)}, {ref}")
+        print(f"{author_time}, {ref}")
 
 
 def commit_author_time_and_branch_ref(run, master_branch):
