@@ -30,11 +30,6 @@ from git import for_each_ref, log
 from columns import columns
 
 
-def print_open_branches_metrics(gen):
-    for author_time, ref in gen:
-        print(f"{author_time}, {ref}")
-
-
 def commit_author_time_and_branch_ref(run, master_branch):
     get_refs = for_each_ref('refs/remotes/origin/**', format='%(refname:short) %(authordate:unix)')
     with run(get_refs) as program:
@@ -191,7 +186,8 @@ if __name__ == "__main__":
                     flags['--index']
                 )
             else:
-                print_open_branches_metrics(gen)
+                writer = csv.writer(sys.stdout, delimiter=',')
+                writer.writerows(gen)
         elif flags["release-lead-time"]:
             pattern = flags['--tag-pattern'] or '*'
             data = commit_author_time_tag_author_time_and_from_to_tag_name(
