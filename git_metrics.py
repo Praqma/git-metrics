@@ -60,7 +60,7 @@ def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag):
             old_tag, old_author_time = tag, tag_author_time
 
 
-def plot_open_branches_metrics(run, repo_name):
+def plot_open_branches_metrics(gen, repo_name):
     import matplotlib.pyplot as plt
     from pandas import DataFrame
 
@@ -140,6 +140,7 @@ def plot_tags(data):
     plt.legend()
     plt.tight_layout()
     plt.show()
+
 
 def get_branches(run):
     with run(for_each_ref(format='%(refname)')) as cmd:
