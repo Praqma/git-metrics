@@ -24,12 +24,13 @@ import sys
 
 import matplotlib
 import matplotlib.dates
+import numpy as np
 
 from git import for_each_ref, log
 from columns import columns
 
 
-def print_open_branches_metrics(run):
+def print_open_branches_metrics(gen):
     now = int(time.time())
     for author_time, ref in gen:
         print(f"{now - int(author_time)}, {ref}")
@@ -70,21 +71,29 @@ def plot_open_branches_metrics(gen, repo_name):
     df = DataFrame(gen, columns=("time", "ref"))
     df["age"] = now - df["time"]
     df["age in days"] = df.age // 86400
-    plt.xticks(rotation=40, horizontalalignment='right')
+    unique_refs = df.ref.unique()
+    df["ref_id"] = df.ref.map(lambda ref: np.where(unique_refs == ref)[0])
+    plt.xticks(
+        range(len(unique_refs)),
+        unique_refs,
+        rotation=40,
+        horizontalalignment='right'
+    )
     plt.plot(
-        df.ref,
+        df.ref_id,
         df["age in days"],
         'bo',
         label="commit age in days"
     )
     plt.plot(
-        df.ref.unique(),
+        range(len(unique_refs)),
         df.groupby("ref")["age in days"].median(),
         'r^',
         label="median commit age in days"
     )
     plt.title(f"Inventory - unmerged commits in {repo_name}")
     plt.tight_layout()
+    plt.legend()
     plt.show()
 
 
@@ -115,7 +124,6 @@ def plot_tags(data):
     df["tag_date"] = matplotlib.dates.epoch2num(df["tag_time"])
     df["age in days"] = df.age // 86400
     tmp = df[df["tag"] < "REL-4.4.10"]
-    age_in_days_ = tmp["age in days"]
     df = df.sort_values('tag_time')
     fig, ax = plt.subplots()
     plt.plot_date(
@@ -203,5 +211,5 @@ if __name__ == "__main__":
     if flags["plot"]:
         if flags["--open-branches"]:
             with open(flags["<csv_file>"]) as csv_file:
-                gen = ((int(time), branch) for time, branch in csv.reader(csv_file, delimiter=','))
+                gen = ((int(t), b.strip()) for t, b in csv.reader(csv_file, delimiter=','))
                 plot_open_branches_metrics(gen, flags["<csv_file>"])
