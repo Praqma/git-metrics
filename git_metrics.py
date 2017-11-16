@@ -57,13 +57,12 @@ def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag):
             old_tag, old_author_time = tag, tag_author_time
 
 
-def plot_open_branches_metrics(gen, repo_name):
+def plot_open_branches_metrics(data, repo_name):
     import matplotlib.pyplot as plt
     from pandas import DataFrame
 
-    now = int(time.time())
-    df = DataFrame(gen, columns=("time", "ref"))
-    df["age"] = now - df["time"]
+    df = DataFrame(data, columns=("now", "time", "ref"))
+    df["age"] = df["now"] - df["time"]
     df["age in days"] = df.age // 86400
     unique_refs = df.ref.unique()
     df["ref_id"] = df.ref.map(lambda ref: np.where(unique_refs == ref)[0])
@@ -154,6 +153,7 @@ def get_branches(run):
 
 if __name__ == "__main__":
     flags = docopt.docopt(__doc__)
+    now = int(time.time())
     if flags['<path_to_git_repo>']:
         path_to_git_repo = flags['<path_to_git_repo>']
         repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
@@ -177,17 +177,20 @@ if __name__ == "__main__":
                 error("use -h for more help")
                 exit(1)
             gen = commit_author_time_and_branch_ref(run, master_branch)
-            if flags['--plot']:
-                plot_open_branches_metrics(gen, repo_name)
-            elif flags['--elastic']:
+            if flags['--elastic']:
                 send_open_branches_metrics_to_elastic(
                     gen,
                     flags['--elastic'],
                     flags['--index']
                 )
             else:
-                writer = csv.writer(sys.stdout, delimiter=',')
-                writer.writerows(gen)
+                data = ((now, t, b) for t, b in gen)
+                if flags['--plot']:
+                    plot_open_branches_metrics(data, repo_name)
+                else:
+                    writer = csv.writer(sys.stdout, delimiter=',')
+                    writer.writerow(("query timestamp", "commit timestamp", "branch name"))
+                    writer.writerows(data)
         elif flags["release-lead-time"]:
             pattern = flags['--tag-pattern'] or '*'
             data = commit_author_time_tag_author_time_and_from_to_tag_name(
@@ -205,6 +208,8 @@ if __name__ == "__main__":
                 )
     if flags["plot"]:
         if flags["--open-branches"]:
-            with open(flags["<csv_file>"]) as csv_file:
-                gen = ((int(t), b.strip()) for t, b in csv.reader(csv_file, delimiter=','))
-                plot_open_branches_metrics(gen, flags["<csv_file>"])
+            with open(flags["<csv_file>"], newline='') as csv_file:
+                reader = csv.reader(csv_file, delimiter=',')
+                data = ((int(n), int(t), b) for n, t, b in reader if n.isdigit())
+                plot_open_branches_metrics(data, flags["<csv_file>"])
+
