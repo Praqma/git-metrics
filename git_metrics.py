@@ -86,10 +86,8 @@ def main():
                 write_release_lead_time_csv_file(data)
     if flags["plot"]:
         if flags["--open-branches"]:
-            plot_open_branches_metrics(
-                read_open_branches_csv_file(flags["<csv_file>"]),
-                flags["<csv_file>"]
-            )
+            data = read_open_branches_csv_file(flags["<csv_file>"])
+            plot_open_branches_metrics(data, flags["<csv_file>"])
 
 
 def assert_master_branch(run, master_branch):
