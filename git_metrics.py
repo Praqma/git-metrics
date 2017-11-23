@@ -21,7 +21,8 @@ import os
 import docopt
 import sys
 
-from git_metrics_open_branches import plot_open_branches_metrics, get_branches
+from git_metrics_open_branches import plot_open_branches_metrics
+from git_metrics_open_branches import get_branches
 from git_metrics_open_branches import commit_author_time_and_branch_ref
 from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name
 from git_metrics_release_lead_time import plot_tags
