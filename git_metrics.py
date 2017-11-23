@@ -28,12 +28,29 @@ from git_metrics_open_branches import send_open_branches_metrics_to_elastic
 from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name
 from git_metrics_release_lead_time import plot_tags
 
-if __name__ == "__main__":
+
+def read_open_branches_csv_file(filename):
+    with open(filename) as csv_file:
+        reader = csv.reader(csv_file, delimiter=',')
+        yield from ((int(n), int(t), b) for n, t, b in reader if n.isdigit())
+
+
+def write_open_branches_csv_file(data):
+    writer = csv.writer(sys.stdout, delimiter=',', lineterminator='\n')
+    writer.writerow(("query timestamp", "commit timestamp", "branch name"))
+    writer.writerows(data)
+
+
+def write_release_lead_time_csv_file(data):
+    writer = csv.writer(sys.stdout, delimiter=',')
+    writer.writerows(data)
+
+
+def main():
     flags = docopt.docopt(__doc__)
     now = int(time.time())
     if flags['<path_to_git_repo>']:
         path_to_git_repo = flags['<path_to_git_repo>']
-        repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
         run = partial(
             Popen,
             stdout=PIPE,
@@ -42,17 +59,7 @@ if __name__ == "__main__":
         )
         if flags["open-branches"]:
             master_branch = flags['--master-branch'] or 'origin/master'
-            branches = list(get_branches(run))
-            if not any(branch.endswith(master_branch) for branch in branches):
-                error = partial(print, file=sys.stderr)
-                error(f"branch {master_branch} does not exist")
-                error()
-                error(f"try one of:")
-                for branch in branches:
-                    error(branch)
-                error()
-                error("use -h for more help")
-                exit(1)
+            assert_master_branch(run, master_branch)
             gen = commit_author_time_and_branch_ref(run, master_branch)
             if flags['--elastic']:
                 send_open_branches_metrics_to_elastic(
@@ -63,11 +70,10 @@ if __name__ == "__main__":
             else:
                 data = ((now, t, b) for t, b in gen)
                 if flags['--plot']:
+                    repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
                     plot_open_branches_metrics(data, repo_name)
                 else:
-                    writer = csv.writer(sys.stdout, delimiter=',')
-                    writer.writerow(("query timestamp", "commit timestamp", "branch name"))
-                    writer.writerows(data)
+                    write_open_branches_csv_file(data)
         elif flags["release-lead-time"]:
             pattern = flags['--tag-pattern'] or '*'
             data = commit_author_time_tag_author_time_and_from_to_tag_name(
@@ -77,12 +83,29 @@ if __name__ == "__main__":
             if flags['--plot']:
                 plot_tags(data)
             else:
-                writer = csv.writer(sys.stdout, delimiter=',')
-                writer.writerows(data)
+                write_release_lead_time_csv_file(data)
     if flags["plot"]:
         if flags["--open-branches"]:
-            with open(flags["<csv_file>"], newline='') as csv_file:
-                reader = csv.reader(csv_file, delimiter=',')
-                data = ((int(n), int(t), b) for n, t, b in reader if n.isdigit())
-                plot_open_branches_metrics(data, flags["<csv_file>"])
+            plot_open_branches_metrics(
+                read_open_branches_csv_file(flags["<csv_file>"]),
+                flags["<csv_file>"]
+            )
+
+
+def assert_master_branch(run, master_branch):
+    branches = list(get_branches(run))
+    if not any(branch.endswith(master_branch) for branch in branches):
+        error = partial(print, file=sys.stderr)
+        error(f"branch {master_branch} does not exist")
+        error()
+        error(f"try one of:")
+        for branch in branches:
+            error(branch)
+        error()
+        error("use -h for more help")
+        exit(1)
+
+
+if __name__ == "__main__":
+    main()
 
