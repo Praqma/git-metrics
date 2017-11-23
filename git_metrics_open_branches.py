@@ -39,23 +39,6 @@ def plot_open_branches_metrics(data, repo_name):
     plt.show()
 
 
-def send_open_branches_metrics_to_elastic(gen, elastic_host, index):
-    import requests
-    now = int(time.time())
-    for t, r in gen:
-        age = (now - t)
-        requests.post(
-            f"http://{elastic_host}/{index}/open_branches",
-            json={
-                'git_ref': r,
-                'time': t,
-                'time_in_days': t // 86400,
-                'age': age,
-                'age_in_days': age // 86400
-            }
-        )
-
-
 def commit_author_time_and_branch_ref(run, master_branch):
     get_refs = for_each_ref('refs/remotes/origin/**', format='%(refname:short) %(authordate:unix)')
     with run(get_refs) as program:

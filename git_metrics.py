@@ -3,7 +3,6 @@
 Usage:
     git_metrics.py open-branches [--master-branch=<branch>] <path_to_git_repo>
     git_metrics.py open-branches [--master-branch=<branch>] --plot <path_to_git_repo>
-    git_metrics.py open-branches [--master-branch=<branch>] --elastic=<elastic_url> --index=<elastic_index> <path_to_git_repo>
     git_metrics.py release-lead-time [--tag-pattern=<fn_match>] <path_to_git_repo>
     git_metrics.py release-lead-time --plot [--tag-pattern=<fn_match>] <path_to_git_repo>
     git_metrics.py plot --open-branches <csv_file>
@@ -24,7 +23,6 @@ import sys
 
 from git_metrics_open_branches import plot_open_branches_metrics, get_branches
 from git_metrics_open_branches import commit_author_time_and_branch_ref
-from git_metrics_open_branches import send_open_branches_metrics_to_elastic
 from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name
 from git_metrics_release_lead_time import plot_tags
 
@@ -61,19 +59,12 @@ def main():
             master_branch = flags['--master-branch'] or 'origin/master'
             assert_master_branch(run, master_branch)
             gen = commit_author_time_and_branch_ref(run, master_branch)
-            if flags['--elastic']:
-                send_open_branches_metrics_to_elastic(
-                    gen,
-                    flags['--elastic'],
-                    flags['--index']
-                )
+            data = ((now, t, b) for t, b in gen)
+            if flags['--plot']:
+                repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
+                plot_open_branches_metrics(data, repo_name)
             else:
-                data = ((now, t, b) for t, b in gen)
-                if flags['--plot']:
-                    repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
-                    plot_open_branches_metrics(data, repo_name)
-                else:
-                    write_open_branches_csv_file(data)
+                write_open_branches_csv_file(data)
         elif flags["release-lead-time"]:
             pattern = flags['--tag-pattern'] or '*'
             data = commit_author_time_tag_author_time_and_from_to_tag_name(
