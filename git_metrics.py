@@ -22,134 +22,11 @@ import os
 import docopt
 import sys
 
-import matplotlib
-import matplotlib.dates
-import numpy as np
-
-from git import for_each_ref, log
-from columns import columns
-
-
-def commit_author_time_and_branch_ref(run, master_branch):
-    get_refs = for_each_ref('refs/remotes/origin/**', format='%(refname:short) %(authordate:unix)')
-    with run(get_refs) as program:
-        for branch, t in columns(program.stdout):
-            get_time = log(f"{master_branch}..{branch}", format='%at')
-            with run(get_time) as inner_program:
-                for author_time, in columns(inner_program.stdout):
-                    yield int(author_time), branch
-
-
-def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag):
-    get_refs = for_each_ref(
-        'refs/tags/**',
-        format='%(refname:short) %(*authordate:unix)%(authordate:unix)',
-        sort='v:refname'
-    )
-    with run(get_refs) as program:
-        tag_and_time = filter(lambda p: match_tag(p[0]), columns(program.stdout))
-        old_tag, old_author_time = next(tag_and_time)
-        for tag, tag_author_time in tag_and_time:
-            get_time = log(f"refs/tags/{old_tag}..refs/tags/{tag}", format='%at')
-            with run(get_time) as inner_program:
-                for commit_author_time, in columns(inner_program.stdout):
-                    yield int(commit_author_time), int(tag_author_time), old_tag, tag
-            old_tag, old_author_time = tag, tag_author_time
-
-
-def plot_open_branches_metrics(data, repo_name):
-    import matplotlib.pyplot as plt
-    from pandas import DataFrame
-
-    df = DataFrame(data, columns=("now", "time", "ref"))
-    df["age"] = df["now"] - df["time"]
-    df["age in days"] = df.age // 86400
-    unique_refs = df.ref.unique()
-    df["ref_id"] = df.ref.map(lambda ref: np.where(unique_refs == ref)[0])
-    plt.xticks(
-        range(len(unique_refs)),
-        unique_refs,
-        rotation=40,
-        horizontalalignment='right'
-    )
-    plt.plot(
-        df.ref_id,
-        df["age in days"],
-        'bo',
-        label="commit age in days"
-    )
-    plt.plot(
-        range(len(unique_refs)),
-        df.groupby("ref")["age in days"].median(),
-        'r^',
-        label="median commit age in days"
-    )
-    plt.title(f"Inventory - unmerged commits in {repo_name}")
-    plt.tight_layout()
-    plt.legend()
-    plt.show()
-
-
-def send_open_branches_metrics_to_elastic(gen, elastic_host, index):
-    import requests
-    now = int(time.time())
-    for t, r in gen:
-        age = (now - t)
-        requests.post(
-            f"http://{elastic_host}/{index}/open_branches",
-            json={
-                'git_ref': r,
-                'time': t,
-                'time_in_days': t // 86400,
-                'age': age,
-                'age_in_days': age // 86400
-            }
-        )
-
-
-def plot_tags(data):
-    import matplotlib.pyplot as plt
-    from pandas import DataFrame
-
-    df = DataFrame(data, columns=("commit_time", "tag_time", "from_tag", "tag"))
-    df["age"] = df["tag_time"] - df["commit_time"]
-    df["label"] = df["from_tag"] + '..' + df["tag"]
-    df["tag_date"] = matplotlib.dates.epoch2num(df["tag_time"])
-    df["age in days"] = df.age // 86400
-    tmp = df[df["tag"] < "REL-4.4.10"]
-    df = df.sort_values('tag_time')
-    fig, ax = plt.subplots()
-    plt.plot_date(
-        df["tag_date"],
-        df["age in days"],
-        'bo',
-        label="commit age in days"
-    )
-    plt.plot_date(
-        df["tag_date"].unique(),
-        df.groupby("tag_date")["age in days"].median(),
-        'r^',
-        label="median commit age in days",
-
-    )
-    for tag_date, group in df.groupby("tag_date"):
-        ax.annotate(
-            group["label"].max(),
-            (tag_date, group["age in days"].max() + 5),
-            horizontalalignment='center',
-            verticalalignment='bottom',
-            rotation=90
-        )
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
-
-def get_branches(run):
-    with run(for_each_ref(format='%(refname)')) as cmd:
-        for line in cmd.stdout:
-            yield line.strip()
-
+from git_metrics_open_branches import plot_open_branches_metrics, get_branches
+from git_metrics_open_branches import commit_author_time_and_branch_ref
+from git_metrics_open_branches import send_open_branches_metrics_to_elastic
+from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name
+from git_metrics_release_lead_time import plot_tags
 
 if __name__ == "__main__":
     flags = docopt.docopt(__doc__)
@@ -198,14 +75,10 @@ if __name__ == "__main__":
                 partial(fnmatch, pat=pattern)
             )
             if flags['--plot']:
-                plot_tags(
-                    data
-                )
+                plot_tags(data)
             else:
                 writer = csv.writer(sys.stdout, delimiter=',')
-                writer.writerows(
-                    data
-                )
+                writer.writerows(data)
     if flags["plot"]:
         if flags["--open-branches"]:
             with open(flags["<csv_file>"], newline='') as csv_file:
