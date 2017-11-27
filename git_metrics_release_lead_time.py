@@ -4,7 +4,7 @@ from columns import columns
 from git import for_each_ref, log
 
 
-def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag):
+def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earliest_date=0):
     get_refs = for_each_ref(
         'refs/tags/**',
         format='%(refname:short) %(*authordate:unix)%(authordate:unix)',
@@ -17,11 +17,12 @@ def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag):
             get_time = log(f"refs/tags/{old_tag}..refs/tags/{tag}", format='%at')
             with run(get_time) as inner_program:
                 for commit_author_time, in columns(inner_program.stdout):
-                    yield int(commit_author_time), int(tag_author_time), old_tag, tag
+                    if (tag_author_time > earliest_date):
+                        yield int(commit_author_time), int(tag_author_time), old_tag, tag
             old_tag, old_author_time = tag, tag_author_time
 
 
-def plot_tags(data):
+def plot_release_lead_time_metrics(data, repo_name):
     import matplotlib.pyplot as plt
     from pandas import DataFrame
 
@@ -56,4 +57,5 @@ def plot_tags(data):
         )
     plt.legend()
     plt.tight_layout()
+    plt.title(repo_name)
     plt.show()
