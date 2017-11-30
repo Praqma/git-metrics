@@ -6,11 +6,12 @@ from columns import columns
 from git import for_each_ref, log
 
 
-def plot_open_branches_metrics(data, repo_name):
+def plot_open_branches_metrics(data):
     import matplotlib.pyplot as plt
     from pandas import DataFrame
 
-    df = DataFrame(data, columns=("now", "time", "ref"))
+    df = DataFrame(data, columns=("now", "time", "ref", "repo_name"))
+    repo_name = df["repo_name"][0]
     df["age"] = df["now"] - df["time"]
     df["age in days"] = df.age // 86400
     unique_refs = df.ref.unique()

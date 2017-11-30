@@ -32,12 +32,12 @@ from git_metrics_release_lead_time import plot_release_lead_time_metrics
 def read_open_branches_csv_file(filename):
     with open(filename) as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
-        yield from ((int(n), int(t), b) for n, t, b in reader if n.isdigit())
+        yield from ((int(n), int(t), b, repo_name) for n, t, b, repo_name in reader if n.isdigit())
 
 
 def write_open_branches_csv_file(data):
     writer = csv.writer(sys.stdout, delimiter=',', lineterminator='\n')
-    writer.writerow(("query timestamp", "commit timestamp", "branch name"))
+    writer.writerow(("query timestamp", "commit timestamp", "branch name", "repo name"))
     writer.writerows(data)
 
 
@@ -69,9 +69,9 @@ def main():
             master_branch = flags['--master-branch'] or 'origin/master'
             assert_master_branch(run, master_branch)
             gen = commit_author_time_and_branch_ref(run, master_branch)
-            data = ((now, t, b) for t, b in gen)
+            data = ((now, t, b, repo_name) for t, b in gen)
             if flags['--plot']:
-                plot_open_branches_metrics(data, repo_name)
+                plot_open_branches_metrics(data)
             else:
                 write_open_branches_csv_file(data)
         elif flags["release-lead-time"]:
@@ -90,7 +90,7 @@ def main():
         repo_name = flags['--repo-name']
         if flags["--open-branches"]:
             data = read_open_branches_csv_file(flags["<csv_file>"])
-            plot_open_branches_metrics(data, flags["<csv_file>"])
+            plot_open_branches_metrics(data)
         elif flags["--release-lead-time"]:
             data = read_release_lead_time_csv_file(flags["<csv_file>"])
             plot_release_lead_time_metrics(data, repo_name)
