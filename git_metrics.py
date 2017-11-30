@@ -40,10 +40,12 @@ def write_open_branches_csv_file(data):
     writer.writerow(("query timestamp", "commit timestamp", "branch name"))
     writer.writerows(data)
 
+
 def read_release_lead_time_csv_file(filename):
     with open(filename) as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
         yield from ((int(n), int(t), tag1, tag2) for n, t, tag1, tag2 in reader if n.isdigit())
+
 
 def write_release_lead_time_csv_file(data):
     writer = csv.writer(sys.stdout, delimiter=',', lineterminator='\n')
