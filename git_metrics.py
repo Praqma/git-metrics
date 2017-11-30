@@ -5,8 +5,8 @@ Usage:
     git_metrics.py open-branches [--master-branch=<branch>] --plot <path_to_git_repo>
     git_metrics.py release-lead-time [--tag-pattern=<fn_match>] [--earliest-date=<timestamp>] <path_to_git_repo>
     git_metrics.py release-lead-time --plot [--tag-pattern=<fn_match>] <path_to_git_repo>
-    git_metrics.py plot --open-branches [--repo-name=<repo_name>] <csv_file>
-    git_metrics.py plot --release-lead-time [--repo-name=<repo_name>] <csv_file>
+    git_metrics.py plot --open-branches <csv_file>
+    git_metrics.py plot --release-lead-time <csv_file>
     git_metrics.py batch --open-branches <path_to_git_repos>...
     git_metrics.py (-h | --help)
 
@@ -46,12 +46,12 @@ def write_open_branches_csv_file(data):
 def read_release_lead_time_csv_file(filename):
     with open(filename) as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
-        yield from ((int(n), int(t), tag1, tag2) for n, t, tag1, tag2 in reader if n.isdigit())
+        yield from ((int(n), int(t), tag1, tag2, repo_name) for n, t, tag1, tag2, repo_name in reader if n.isdigit())
 
 
 def write_release_lead_time_csv_file(data):
     writer = csv.writer(sys.stdout, delimiter=',', lineterminator='\n')
-    writer.writerow(("commit timestamp", "tag timestamp", "previous release tag", "release tag"))
+    writer.writerow(("commit timestamp", "tag timestamp", "previous release tag", "release tag", "repo name"))
     writer.writerows(data)
 
 
@@ -79,18 +79,18 @@ def main():
                 partial(fnmatch, pat=pattern),
                 earliest_date,
             )
+            gen = ((cat, tat, old_tag, tag, repo_name ) for cat, tat, old_tag, tag in data)
             if flags['--plot']:
-                plot_release_lead_time_metrics(data, repo_name)
+                plot_release_lead_time_metrics(gen)
             else:
-                write_release_lead_time_csv_file(data)
+                write_release_lead_time_csv_file(gen)
     if flags["plot"]:
-        repo_name = flags['--repo-name']
         if flags["--open-branches"]:
             data = read_open_branches_csv_file(flags["<csv_file>"])
             plot_open_branches_metrics(data)
         elif flags["--release-lead-time"]:
             data = read_release_lead_time_csv_file(flags["<csv_file>"])
-            plot_release_lead_time_metrics(data, repo_name)
+            plot_release_lead_time_metrics(data)
     elif flags["batch"] and flags["--open-branches"]:
         for path_to_git_repo in flags['<path_to_git_repos>']:
             print("checking master branch in repo:", path_to_git_repo, file=sys.stderr)

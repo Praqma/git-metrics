@@ -22,11 +22,12 @@ def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earl
             old_tag, old_author_time = tag, tag_author_time
 
 
-def plot_release_lead_time_metrics(data, repo_name):
+def plot_release_lead_time_metrics(data):
     import matplotlib.pyplot as plt
     from pandas import DataFrame
 
-    df = DataFrame(data, columns=("commit_time", "tag_time", "from_tag", "tag"))
+    df = DataFrame(data, columns=("commit_time", "tag_time", "from_tag", "tag", "repo_name"))
+    repo_name = df["repo_name"][0]
     df["age"] = df["tag_time"] - df["commit_time"]
     df["label"] = df["from_tag"] + '..' + df["tag"]
     df["tag_date"] = matplotlib.dates.epoch2num(df["tag_time"])
