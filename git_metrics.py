@@ -50,7 +50,6 @@ def write_release_lead_time_csv_file(data):
     writer.writerow(("commit timestamp", "tag timestamp", "previous release tag", "release tag"))
     writer.writerows(data)
 
-#1451297815.853977
 
 def main():
     flags = docopt.docopt(__doc__)
