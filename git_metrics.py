@@ -92,17 +92,18 @@ def main():
             data = read_release_lead_time_csv_file(flags["<csv_file>"])
             plot_release_lead_time_metrics(data, repo_name)
     elif flags["batch"] and flags["--open-branches"]:
-
-        for path_to_git_repo in  flags['<path_to_git_repos>']:
+        for path_to_git_repo in flags['<path_to_git_repos>']:
+            print("checking master branch in repo:", path_to_git_repo, file=sys.stderr)
             run = mk_run(path_to_git_repo)
             assert_master_branch(run, 'origin/master')
         data = []
         for path_to_git_repo in flags['<path_to_git_repos>']:
+            print("fetching data from in repo:", path_to_git_repo, file=sys.stderr)
             repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
             run = mk_run(path_to_git_repo)
             gen = commit_author_time_and_branch_ref(run, 'origin/master')
-            data.append((now, t, b, repo_name) for t, b in gen)
-        write_open_branches_csv_file(chain(*data))
+            data.extend((now, t, b, repo_name) for t, b in gen)
+        write_open_branches_csv_file(data)
 
 
 def mk_run(path_to_git_repo):
