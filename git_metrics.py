@@ -7,6 +7,7 @@ Usage:
     git_metrics.py release-lead-time --plot [--tag-pattern=<fn_match>] <path_to_git_repo>
     git_metrics.py plot --open-branches [--repo-name=<repo_name>] <csv_file>
     git_metrics.py plot --release-lead-time [--repo-name=<repo_name>] <csv_file>
+    git_metrics.py batch --open-branches <path_to_git_repos>...
     git_metrics.py (-h | --help)
 
     Options:
@@ -14,6 +15,7 @@ Usage:
 """
 import time
 from fnmatch import fnmatch
+from itertools import chain
 from subprocess import Popen, PIPE
 from functools import partial
 import csv
@@ -59,12 +61,7 @@ def main():
     if flags['<path_to_git_repo>']:
         path_to_git_repo = flags['<path_to_git_repo>']
         repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
-        run = partial(
-            Popen,
-            stdout=PIPE,
-            cwd=path_to_git_repo,
-            universal_newlines=True
-        )
+        run = mk_run(path_to_git_repo)
         if flags["open-branches"]:
             master_branch = flags['--master-branch'] or 'origin/master'
             assert_master_branch(run, master_branch)
@@ -94,6 +91,27 @@ def main():
         elif flags["--release-lead-time"]:
             data = read_release_lead_time_csv_file(flags["<csv_file>"])
             plot_release_lead_time_metrics(data, repo_name)
+    elif flags["batch"] and flags["--open-branches"]:
+
+        for path_to_git_repo in  flags['<path_to_git_repos>']:
+            run = mk_run(path_to_git_repo)
+            assert_master_branch(run, 'origin/master')
+        data = []
+        for path_to_git_repo in flags['<path_to_git_repos>']:
+            repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
+            run = mk_run(path_to_git_repo)
+            gen = commit_author_time_and_branch_ref(run, 'origin/master')
+            data.append((now, t, b, repo_name) for t, b in gen)
+        write_open_branches_csv_file(chain(*data))
+
+
+def mk_run(path_to_git_repo):
+    return partial(
+        Popen,
+        stdout=PIPE,
+        cwd=path_to_git_repo,
+        universal_newlines=True
+    )
 
 
 def assert_master_branch(run, master_branch):
