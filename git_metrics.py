@@ -8,6 +8,7 @@ Usage:
     git_metrics.py plot --open-branches <csv_file>
     git_metrics.py plot --release-lead-time <csv_file>
     git_metrics.py batch --open-branches <path_to_git_repos>...
+    git_metrics.py batch --release-lead-time <path_to_git_repos>...
     git_metrics.py (-h | --help)
 
     Options:
@@ -74,16 +75,16 @@ def main():
         elif flags["release-lead-time"]:
             earliest_date = int(flags["--earliest-date"] or 0)
             pattern = flags['--tag-pattern'] or '*'
-            data = commit_author_time_tag_author_time_and_from_to_tag_name(
+            gen = commit_author_time_tag_author_time_and_from_to_tag_name(
                 run,
                 partial(fnmatch, pat=pattern),
                 earliest_date,
             )
-            gen = ((cat, tat, old_tag, tag, repo_name ) for cat, tat, old_tag, tag in data)
+            data = ((cat, tat, old_tag, tag, repo_name) for cat, tat, old_tag, tag in gen)
             if flags['--plot']:
-                plot_release_lead_time_metrics(gen)
+                plot_release_lead_time_metrics(data)
             else:
-                write_release_lead_time_csv_file(gen)
+                write_release_lead_time_csv_file(data)
     if flags["plot"]:
         if flags["--open-branches"]:
             data = read_open_branches_csv_file(flags["<csv_file>"])
@@ -104,6 +105,18 @@ def main():
             gen = commit_author_time_and_branch_ref(run, 'origin/master')
             data.extend((now, t, b, repo_name) for t, b in gen)
         write_open_branches_csv_file(data)
+    elif flags["batch"] and flags["--release-lead-time"]:
+        data = []
+        for path_to_git_repo in flags['<path_to_git_repos>']:
+            print("fetching data from in repo:", path_to_git_repo, file=sys.stderr)
+            repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
+            run = mk_run(path_to_git_repo)
+            gen = commit_author_time_tag_author_time_and_from_to_tag_name(
+                run,
+                lambda _: True,
+            )
+            data.extend((cat, tat, old_tag, tag, repo_name) for cat, tat, old_tag, tag in gen)
+            write_release_lead_time_csv_file(data)
 
 
 def mk_run(path_to_git_repo):
