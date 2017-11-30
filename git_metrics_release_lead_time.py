@@ -17,7 +17,7 @@ def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earl
             get_time = log(f"refs/tags/{old_tag}..refs/tags/{tag}", format='%at')
             with run(get_time) as inner_program:
                 for commit_author_time, in columns(inner_program.stdout):
-                    if (tag_author_time > earliest_date):
+                    if int(tag_author_time) > earliest_date:
                         yield int(commit_author_time), int(tag_author_time), old_tag, tag
             old_tag, old_author_time = tag, tag_author_time
 

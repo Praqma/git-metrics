@@ -75,7 +75,7 @@ def main():
             else:
                 write_open_branches_csv_file(data)
         elif flags["release-lead-time"]:
-            earliest_date = flags["--earliest-date"]
+            earliest_date = int(flags["--earliest-date"] or 0)
             pattern = flags['--tag-pattern'] or '*'
             data = commit_author_time_tag_author_time_and_from_to_tag_name(
                 run,
