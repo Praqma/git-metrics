@@ -16,7 +16,6 @@ Usage:
 """
 import time
 from fnmatch import fnmatch
-from subprocess import Popen, PIPE
 from functools import partial
 import csv
 import os
@@ -29,6 +28,7 @@ from git_metrics_open_branches import get_branches
 from git_metrics_open_branches import commit_author_time_and_branch_ref
 from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name
 from git_metrics_release_lead_time import plot_release_lead_time_metrics
+from process import mk_run
 
 
 def read_open_branches_csv_file(filename):
@@ -116,15 +116,6 @@ def main():
             )
             data.extend((cat, tat, old_tag, tag, repo_name) for cat, tat, old_tag, tag in gen)
             write_release_lead_time_csv_file(data)
-
-
-def mk_run(path_to_git_repo):
-    return partial(
-        Popen,
-        stdout=PIPE,
-        cwd=path_to_git_repo,
-        universal_newlines=True
-    )
 
 
 def assert_master_branch(run, master_branch):
