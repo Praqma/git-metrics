@@ -16,7 +16,6 @@ Usage:
 """
 import time
 from fnmatch import fnmatch
-from itertools import chain
 from subprocess import Popen, PIPE
 from functools import partial
 import csv
