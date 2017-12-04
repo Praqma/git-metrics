@@ -1,6 +1,6 @@
 
 
-def for_each_ref(glob=None, format=None, sort=None):
+def for_each_ref(glob=None, format=None, sort=None) -> [str]:
     return sum((
         ["git", "for-each-ref"],
         [] if format is None else [f"--format={format}"],
@@ -9,7 +9,7 @@ def for_each_ref(glob=None, format=None, sort=None):
     ), [])
 
 
-def log(selector=None, format=None):
+def log(selector=None, format=None) -> [str]:
     return sum((
         ["git", "log"],
         [] if format is None else [f"--format={format}"],
@@ -17,7 +17,7 @@ def log(selector=None, format=None):
     ), [])
 
 
-def cherry(upstream=None, head=None):
+def cherry(upstream=None, head=None) -> [str]:
     return sum((
         ["git", "cherry"],
         [] if upstream is None else [upstream],
