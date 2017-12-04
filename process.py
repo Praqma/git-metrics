@@ -1,5 +1,6 @@
 from functools import partial
 from subprocess import Popen, PIPE
+from typing import Iterable
 
 
 def mk_run(path_to_git_repo):
@@ -11,6 +12,6 @@ def mk_run(path_to_git_repo):
     )
 
 
-def proc_to_stdout(proc):
+def proc_to_stdout(proc) -> Iterable[str]:
     with proc as p:
         yield from p.stdout

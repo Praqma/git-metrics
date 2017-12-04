@@ -1,13 +1,26 @@
+from typing import Tuple, Iterable
+
 import matplotlib
 
 from columns import columns
 from git import for_each_ref, log
+from process import proc_to_stdout
 
 TAGS_WITH_AUTHOR_DATE_CMD = for_each_ref(
     'refs/tags/**',
     format='%(refname:short) %(*authordate:unix)%(authordate:unix)',
     sort='v:refname'
 )
+
+
+def tags_with_author_date(run) -> Iterable[Tuple[str, int]]:
+    proc = run(TAGS_WITH_AUTHOR_DATE_CMD)
+    stdout = proc_to_stdout(proc)
+    return parse_tags_with_author_date(stdout)
+
+
+def parse_tags_with_author_date(lines: Iterable[str]) -> Iterable[Tuple[str, int]]:
+    return ((tag, int(date)) for tag, date in columns(lines))
 
 
 def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earliest_date=0):
