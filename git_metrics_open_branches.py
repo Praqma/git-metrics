@@ -1,12 +1,9 @@
-import time
-
-import numpy as np
-
 from data import columns
 from git import for_each_ref, log
 
 
 def plot_open_branches_metrics(data):
+    import numpy as np
     import matplotlib.pyplot as plt
     from pandas import DataFrame
 
