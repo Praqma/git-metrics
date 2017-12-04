@@ -3,14 +3,15 @@ import matplotlib
 from columns import columns
 from git import for_each_ref, log
 
+TAGS_WITH_AUTHOR_DATE_CMD = for_each_ref(
+    'refs/tags/**',
+    format='%(refname:short) %(*authordate:unix)%(authordate:unix)',
+    sort='v:refname'
+)
+
 
 def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earliest_date=0):
-    get_refs = for_each_ref(
-        'refs/tags/**',
-        format='%(refname:short) %(*authordate:unix)%(authordate:unix)',
-        sort='v:refname'
-    )
-    with run(get_refs) as program:
+    with run(TAGS_WITH_AUTHOR_DATE_CMD) as program:
         tag_and_time = filter(lambda p: match_tag(p[0]), columns(program.stdout))
         old_tag, old_author_time = next(tag_and_time)
         for tag, tag_author_time in tag_and_time:
