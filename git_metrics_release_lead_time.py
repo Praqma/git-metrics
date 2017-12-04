@@ -2,7 +2,7 @@ from typing import Tuple, Iterable
 
 import matplotlib
 
-from data import columns
+from data import columns, zip_with_tail
 from git import for_each_ref, log
 from process import proc_to_stdout
 
@@ -24,16 +24,15 @@ def parse_tags_with_author_date(lines: Iterable[str]) -> Iterable[Tuple[str, int
 
 
 def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earliest_date=0):
-    with run(TAGS_WITH_AUTHOR_DATE_CMD) as program:
-        tag_and_time = filter(lambda p: match_tag(p[0]), columns(program.stdout))
-        old_tag, old_author_time = next(tag_and_time)
-        for tag, tag_author_time in tag_and_time:
-            get_time = log(f"refs/tags/{old_tag}..refs/tags/{tag}", format='%at')
-            with run(get_time) as inner_program:
-                for commit_author_time, in columns(inner_program.stdout):
-                    if int(tag_author_time) > earliest_date:
-                        yield int(commit_author_time), int(tag_author_time), old_tag, tag
-            old_tag, old_author_time = tag, tag_author_time
+    tags_and_date = tags_with_author_date(run)
+    filtered_tags_and_dates = filter(lambda p: match_tag(p[0]), tags_and_date)
+    ziped = zip_with_tail(filtered_tags_and_dates)
+    for (old_tag, old_author_time), (tag, tag_author_time) in ziped:
+        get_time = log(f"refs/tags/{old_tag}..refs/tags/{tag}", format='%at')
+        with run(get_time) as inner_program:
+            for commit_author_time, in columns(inner_program.stdout):
+                if tag_author_time > earliest_date:
+                    yield int(commit_author_time), int(tag_author_time), old_tag, tag
 
 
 def plot_release_lead_time_metrics(data):
