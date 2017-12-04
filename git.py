@@ -1,6 +1,7 @@
+from typing import List
 
 
-def for_each_ref(glob=None, format=None, sort=None) -> [str]:
+def for_each_ref(glob=None, format=None, sort=None) -> List[str]:
     return sum((
         ["git", "for-each-ref"],
         [] if format is None else [f"--format={format}"],
@@ -9,7 +10,7 @@ def for_each_ref(glob=None, format=None, sort=None) -> [str]:
     ), [])
 
 
-def log(selector=None, format=None) -> [str]:
+def log(selector=None, format=None) -> List[str]:
     return sum((
         ["git", "log"],
         [] if format is None else [f"--format={format}"],
@@ -17,7 +18,7 @@ def log(selector=None, format=None) -> [str]:
     ), [])
 
 
-def cherry(upstream=None, head=None) -> [str]:
+def cherry(upstream=None, head=None) -> List[str]:
     return sum((
         ["git", "cherry"],
         [] if upstream is None else [upstream],
