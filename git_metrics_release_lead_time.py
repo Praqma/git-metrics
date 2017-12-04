@@ -29,10 +29,11 @@ def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earl
     ziped = zip_with_tail(filtered_tags_and_dates)
     for (old_tag, old_author_time), (tag, tag_author_time) in ziped:
         get_time = log(f"refs/tags/{old_tag}..refs/tags/{tag}", format='%at')
-        with run(get_time) as inner_program:
-            for commit_author_time, in columns(inner_program.stdout):
-                if tag_author_time > earliest_date:
-                    yield int(commit_author_time), int(tag_author_time), old_tag, tag
+        proc = run(get_time)
+        stdout = proc_to_stdout(proc)
+        for commit_author_time, in columns(stdout):
+            if tag_author_time > earliest_date:
+                yield int(commit_author_time), int(tag_author_time), old_tag, tag
 
 
 def plot_release_lead_time_metrics(data):
