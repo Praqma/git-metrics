@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-from columns import columns
+from data import columns
 from git import for_each_ref, log
 
 

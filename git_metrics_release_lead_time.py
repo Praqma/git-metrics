@@ -2,7 +2,7 @@ from typing import Tuple, Iterable
 
 import matplotlib
 
-from columns import columns
+from data import columns
 from git import for_each_ref, log
 from process import proc_to_stdout
 

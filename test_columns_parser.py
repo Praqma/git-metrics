@@ -1,4 +1,4 @@
-from columns import columns
+from data import columns
 
 
 def test_single_column():
