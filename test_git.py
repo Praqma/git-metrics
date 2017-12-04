@@ -1,4 +1,4 @@
-from git import for_each_ref
+from git import for_each_ref, cherry
 from git import log
 
 
@@ -50,4 +50,20 @@ def test_log_format():
         "git",
         "log",
         "--format=%a"
+    ]
+
+
+def test_cherry():
+    assert cherry() == [
+        "git",
+        "cherry"
+    ]
+
+
+def test_cherry_upstream_and_head_arguments():
+    assert cherry(upstream="<upstream>", head="<head>") == [
+        "git",
+        "cherry",
+        "<upstream>",
+        "<head>"
     ]

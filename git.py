@@ -15,3 +15,11 @@ def log(selector=None, format=None):
         [] if format is None else [f"--format={format}"],
         [] if selector is None else [selector],
     ), [])
+
+
+def cherry(upstream=None, head=None):
+    return sum((
+        ["git", "cherry"],
+        [] if upstream is None else [upstream],
+        [] if head is None else [head],
+    ), [])
