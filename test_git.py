@@ -1,4 +1,4 @@
-from git import for_each_ref, cherry
+from git import for_each_ref, cherry, show
 from git import log
 
 
@@ -30,6 +30,38 @@ def test_for_each_ref_sort():
     ]
 
 
+def test_show():
+    assert show() == [
+        "git",
+        "show"
+    ]
+
+
+def test_show_objects():
+    assert show(objects=('master', 'feature')) == [
+        "git",
+        "show",
+        "master",
+        "feature"
+    ]
+
+
+def test_show_no_diff():
+    assert show(diff=False) == [
+        "git",
+        "show",
+        "-s"
+    ]
+
+
+def test_show_format():
+    assert show(format="%at") == [
+        "git",
+        "show",
+        "--format=%at"
+    ]
+
+
 def test_log_normal():
     assert log() == [
         "git",
@@ -50,6 +82,14 @@ def test_log_format():
         "git",
         "log",
         "--format=%a"
+    ]
+
+
+def test_log_limit():
+    assert log(limit=10) == [
+        "git",
+        "log",
+        "-10"
     ]
 
 

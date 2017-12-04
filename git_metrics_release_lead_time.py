@@ -1,9 +1,11 @@
-from typing import Tuple, Iterable
+from itertools import zip_longest
+from typing import Tuple, Iterable, List
 
 import matplotlib
 
 from data import columns, zip_with_tail
-from git import for_each_ref, log
+from git import for_each_ref, show
+from git import cherry
 from process import proc_to_stdout
 
 TAGS_WITH_AUTHOR_DATE_CMD = for_each_ref(
@@ -23,17 +25,33 @@ def parse_tags_with_author_date(lines: Iterable[str]) -> Iterable[Tuple[str, int
     return ((tag, int(date)) for tag, date in columns(lines))
 
 
+def diff_of_commits_between(run, upstream: str, head: str) -> Iterable[str]:
+    cmd = cherry(upstream, head)
+    proc = run(cmd)
+    stdout = proc_to_stdout(proc)
+    for sign, commit in columns(stdout):
+        if sign == '+':
+            yield commit
+
+
+def date_from_git_objects(run, objects: Iterable[str]) -> List[int]:
+    cmd = show(objects=objects, diff=False, format='%at')
+    proc = run(cmd)
+    stdout = proc_to_stdout(proc)
+    return list(int(line) for line in stdout)
+
+
 def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earliest_date=0):
     tags_and_date = tags_with_author_date(run)
     filtered_tags_and_dates = filter(lambda p: match_tag(p[0]), tags_and_date)
     ziped = zip_with_tail(filtered_tags_and_dates)
     for (old_tag, old_author_time), (tag, tag_author_time) in ziped:
-        get_time = log(f"refs/tags/{old_tag}..refs/tags/{tag}", format='%at')
-        proc = run(get_time)
-        stdout = proc_to_stdout(proc)
-        for commit_author_time, in columns(stdout):
-            if tag_author_time > earliest_date:
-                yield int(commit_author_time), int(tag_author_time), old_tag, tag
+        commits = diff_of_commits_between(run, old_tag, tag)
+        for chunked_commits in zip_longest(*([iter(commits)] * 25)):
+            removed_fill_value = filter(lambda x: x is not None, chunked_commits)
+            for commit_author_time in date_from_git_objects(run, removed_fill_value):
+                if tag_author_time > earliest_date:
+                    yield int(commit_author_time), int(tag_author_time), old_tag, tag
 
 
 def plot_release_lead_time_metrics(data):
