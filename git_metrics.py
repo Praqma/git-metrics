@@ -8,7 +8,7 @@ Usage:
     git_metrics.py plot --open-branches <csv_file>
     git_metrics.py plot --release-lead-time <csv_file>
     git_metrics.py batch --open-branches <path_to_git_repos>...
-    git_metrics.py batch --release-lead-time <path_to_git_repos>...
+    git_metrics.py batch --release-lead-time [--earliest-date=<timestamp>] <path_to_git_repos>...
     git_metrics.py (-h | --help)
 
     Options:
@@ -105,6 +105,7 @@ def main():
             data.extend((now, t, b, repo_name) for t, b in gen)
         write_open_branches_csv_file(data)
     elif flags["batch"] and flags["--release-lead-time"]:
+        earliest_date = int(flags["--earliest-date"] or 0)
         data = []
         for path_to_git_repo in flags['<path_to_git_repos>']:
             print("fetching data from in repo:", path_to_git_repo, file=sys.stderr)
@@ -113,6 +114,7 @@ def main():
             gen = commit_author_time_tag_author_time_and_from_to_tag_name(
                 run,
                 lambda _: True,
+                earliest_date=earliest_date
             )
             data.extend((cat, tat, old_tag, tag, repo_name) for cat, tat, old_tag, tag in gen)
             write_release_lead_time_csv_file(data)
