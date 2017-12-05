@@ -43,8 +43,11 @@ def date_from_git_objects(run, objects: Iterable[str]) -> List[int]:
 
 def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earliest_date=0):
     tags_and_date = tags_with_author_date(run)
-    filtered_tags_and_dates = filter(lambda p: match_tag(p[0]), tags_and_date)
-    ziped = zip_with_tail(filtered_tags_and_dates)
+    filtered_on_tags_date = filter(
+        lambda p: match_tag(p[0]) and p[1] > earliest_date,
+        tags_and_date
+    )
+    ziped = zip_with_tail(filtered_on_tags_date)
     for (old_tag, old_author_time), (tag, tag_author_time) in ziped:
         commits = diff_of_commits_between(run, old_tag, tag)
         for chunked_commits in zip_longest(*([iter(commits)] * 25)):
