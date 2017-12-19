@@ -53,8 +53,7 @@ def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earl
         for chunked_commits in zip_longest(*([iter(commits)] * 25)):
             removed_fill_value = filter(lambda x: x is not None, chunked_commits)
             for commit_author_time in date_from_git_objects(run, removed_fill_value):
-                if tag_author_time > earliest_date:
-                    yield int(commit_author_time), int(tag_author_time), old_tag, tag
+                yield int(commit_author_time), int(tag_author_time), old_tag, tag
 
 
 def plot_release_lead_time_metrics(data):
