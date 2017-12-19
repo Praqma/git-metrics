@@ -117,7 +117,7 @@ def main():
                 earliest_date=earliest_date
             )
             data.extend((cat, tat, old_tag, tag, repo_name) for cat, tat, old_tag, tag in gen)
-            write_release_lead_time_csv_file(data)
+        write_release_lead_time_csv_file(data)
 
 
 def assert_master_branch(run, master_branch):
