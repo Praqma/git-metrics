@@ -1,3 +1,7 @@
+---
+maintainer: neppord
+---
+
 # Git Metrics
 
 This project helps analyse a git repo that has beforehand been cloned to a local directory.
