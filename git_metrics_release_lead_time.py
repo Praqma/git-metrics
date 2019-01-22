@@ -42,11 +42,7 @@ def date_from_git_objects(run, objects: Iterable[str]) -> List[int]:
 
 
 def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earliest_date=0):
-    tags_and_date = tags_with_author_date(run)
-    filtered_on_tags_date = filter(
-        lambda p: match_tag(p[0]) and p[1] > earliest_date,
-        tags_and_date
-    )
+    filtered_on_tags_date = fetch_tags_and_dates(run, match_tag, earliest_date)
     ziped = zip_with_tail(filtered_on_tags_date)
     for (old_tag, old_author_time), (tag, tag_author_time) in ziped:
         commits = diff_of_commits_between(run, old_tag, tag)
@@ -54,6 +50,15 @@ def commit_author_time_tag_author_time_and_from_to_tag_name(run, match_tag, earl
             removed_fill_value = filter(lambda x: x is not None, chunked_commits)
             for commit_author_time in date_from_git_objects(run, removed_fill_value):
                 yield int(commit_author_time), int(tag_author_time), old_tag, tag
+
+
+def fetch_tags_and_dates(run, match_tag, earliest_date=0):
+    tags_and_date = tags_with_author_date(run)
+    filtered_on_tags_date = filter(
+        lambda p: match_tag(p[0]) and p[1] > earliest_date,
+        tags_and_date
+    )
+    return filtered_on_tags_date
 
 
 def plot_release_lead_time_metrics(data):

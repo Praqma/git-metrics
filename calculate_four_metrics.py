@@ -6,6 +6,7 @@
 
 Usage:
     calculate_four_metrics.py lead-time [--deploy-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
+    calculate_four_metrics.py deploy-interval [--deploy-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
     calculate_four_metrics.py (-h | --help)
 
     Options:
@@ -19,7 +20,7 @@ from functools import partial
 
 import docopt
 
-from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name
+from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name, fetch_tags_and_dates
 from process import mk_run
 
 
@@ -43,6 +44,20 @@ def main():
             print(f"Avarage lead time: {mean_seconds:.0f} seconds")
             print(f"Avarage lead time: {(mean_seconds / 3600):.0f} hours")
             print(f"Avarage lead time: {(mean_seconds / 86400):.0f} days")
+        if flags["deploy-interval"]:
+            start_date = int(flags["--start-date"] or 0)
+            pattern = flags['--deploy-tag-pattern'] or '*'
+            gen = fetch_tags_and_dates(
+                run,
+                partial(fnmatch, pat=pattern),
+                start_date,
+            )
+            deployment_data = set(tat for tag, tat in gen)
+            interval_seconds = (now - start_date) / len(deployment_data)
+            print(f"Release interval: {interval_seconds:.0f} seconds")
+            print(f"Release interval: {(interval_seconds / 3600):.0f} hours")
+            print(f"Release interval: {(interval_seconds / 86400):.0f} days")
+
 
 if __name__ == "__main__":
     main()
