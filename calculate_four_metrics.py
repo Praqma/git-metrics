@@ -24,6 +24,7 @@ import docopt
 
 from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name, fetch_tags_and_dates
 from process import mk_run
+from recovery_time import Deployment, find_patch, find_outages
 
 
 def main():
@@ -89,6 +90,15 @@ def main():
                 partial(fnmatch, pat=patch_pattern),
                 start_date,
             )
+            deployments = []
+            for deployment in deploy_tags:
+                patch = find_patch(deployment[0], patch_tags)
+                deployments.append(Deployment(patch is not None, deployment[1]))
+
+            outages = find_outages(deployments)
+            downtime = (end.time - start.time for start, end in outages)
+
+            print(f"Recovery time: {deployments}")
 
 
 if __name__ == "__main__":

@@ -1,39 +1,4 @@
-from dataclasses import dataclass
-
-
-def find_outages(deployments):
-    results = []
-
-    for patch_split in split_sequence(deployments):
-        first_patch = patch_split[0]
-
-        deployment_index = deployments.index(first_patch) - 1
-        if deployment_index >= 0:
-            failed_deployment = deployments[deployment_index]
-            last_patch = patch_split[-1]
-            results.append((failed_deployment, last_patch))
-
-    return results
-
-
-def split_sequence(deployments):
-    split = []
-    for deployment in deployments:
-        if deployment.is_patch:
-            split.append(deployment)
-        else:
-            if split:
-                yield split
-            split = []
-
-    if split:
-        yield split
-
-@dataclass
-class Deployment:
-    is_patch: bool
-    time: int
-
+from recovery_time import find_outages, split_sequence, Deployment
 
 deployment_zero = Deployment(False, 0)
 deployment_two = Deployment(False, 2)
@@ -81,7 +46,7 @@ def test_two_outage_two_patches():
     assert results == [(deployment_zero, patch_one), (deployment_two, patch_three)]
 
 
-def test_begin_with_patche():
+def test_begin_with_patch():
     results = find_outages([patch_one, deployment_two, patch_three])
     assert results == [(deployment_two, patch_three)]
 
