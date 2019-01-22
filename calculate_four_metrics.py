@@ -8,6 +8,7 @@ Usage:
     calculate_four_metrics.py lead-time [--deploy-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
     calculate_four_metrics.py deploy-interval [--deploy-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
     calculate_four_metrics.py change-fail-rate [--deploy-tag-pattern=<fn_match>] [--patch-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
+    calculate_four_metrics.py recovery-time [--deploy-tag-pattern=<fn_match>] [--patch-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
     calculate_four_metrics.py (-h | --help)
 
     Options:
@@ -73,8 +74,21 @@ def main():
                 start_date,
             )
             change_fail_rate = len(list(patch_tags)) / len(list(deploy_tags)) * 100
-
             print(f"Change failure rate: {change_fail_rate:.1f}%")
+        if flags["recovery-time"]:
+            start_date = int(flags["--start-date"] or 0)
+            deploy_pattern = flags['--deploy-tag-pattern'] or '*'
+            patch_pattern = flags['--patch-tag-pattern'] or '*'
+            deploy_tags = fetch_tags_and_dates(
+                run,
+                partial(fnmatch, pat=deploy_pattern),
+                start_date,
+            )
+            patch_tags = fetch_tags_and_dates(
+                run,
+                partial(fnmatch, pat=patch_pattern),
+                start_date,
+            )
 
 
 if __name__ == "__main__":
