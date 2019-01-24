@@ -33,7 +33,7 @@ def tags_with_commit_date(run) -> Iterable[Tuple[str, int]]:
 
 
 def parse_tags_with_date(lines: Iterable[str]) -> Iterable[Tuple[str, int]]:
-    return ((tag, int(date)) for tag, date in columns(lines))
+    return ((tag_and_maybe_date[0], int(tag_and_maybe_date[1])) for tag_and_maybe_date in columns(lines) if len(tag_and_maybe_date) > 1)
 
 
 def diff_of_commits_between(run, upstream: str, head: str) -> Iterable[str]:
