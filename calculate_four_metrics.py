@@ -51,18 +51,7 @@ def main():
             start_date = int(flags["--start-date"] or 0)
             deploy_pattern = flags['--deploy-tag-pattern'] or '*'
             patch_pattern = flags['--patch-tag-pattern'] or '*'
-            run = mk_run(path_to_git_repo)
-            deploy_tags = fetch_tags_and_dates(
-                run,
-                partial(fnmatch, pat=deploy_pattern),
-                start_date,
-            )
-            patch_tags = fetch_tags_and_dates(
-                run,
-                partial(fnmatch, pat=patch_pattern),
-                start_date,
-            )
-            change_fail_rate = len(list(patch_tags)) / len(list(deploy_tags)) * 100
+            change_fail_rate = calculate_change_fail_rate(repo_name, deploy_pattern, patch_pattern, start_date)
             print(f"Change failure rate: {change_fail_rate:.1f}%")
         if flags["recovery-time"]:
             start_date = int(flags["--start-date"] or 0)
@@ -88,6 +77,22 @@ def main():
             downtime = (end.time - start.time for start, end in outages)
 
             print(f"Recovery time: {deployments}")
+
+
+def calculate_change_fail_rate(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
+    run = mk_run(path_to_git_repo)
+    deploy_tags = fetch_tags_and_dates(
+        run,
+        partial(fnmatch, pat=deploy_pattern),
+        start_date,
+    )
+    patch_tags = fetch_tags_and_dates(
+        run,
+        partial(fnmatch, pat=patch_pattern),
+        start_date,
+    )
+    change_fail_rate = len(list(patch_tags)) / len(list(deploy_tags)) * 100
+    return change_fail_rate
 
 
 def calculate_deploy_interval(path_to_git_repo, pattern, start_date, now):

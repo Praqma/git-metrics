@@ -5,7 +5,7 @@ import tempfile
 import pytest
 from git import Repo
 
-from calculate_four_metrics import calculate_lead_time, calculate_deploy_interval
+from calculate_four_metrics import calculate_lead_time, calculate_deploy_interval, calculate_change_fail_rate
 
 
 @pytest.fixture
@@ -56,9 +56,17 @@ def test_lead_time(git_repo_DDDP):
     # Mean lead time is (60 + 240) / 2
     assert mean_lead_time == 150
 
+
 def test_calculate_deploy_interval(git_repo_DDDP):
     interval_end = 1548322020 # Thu, 24 Jan 2019 10:27:00 CET in epoch time
     interval_length = 600 # 10 minutes
     interval = calculate_deploy_interval(git_repo_DDDP.working_dir, "D-*", interval_end - interval_length, interval_end)
     # Three deployments within the interval so deployment interval is 600 seconds divided by three
     assert interval == 200
+
+
+def test_calculate_change_fail_rate(git_repo_DDDP):
+    fail_rate = calculate_change_fail_rate(git_repo_DDDP.working_dir, "D-*", "P-*", 0)
+    # We have three deployments, one is a patch. Failure rate is one in three or ~33%.
+    assert fail_rate == pytest.approx((1/3) * 100, 0.1)
+
