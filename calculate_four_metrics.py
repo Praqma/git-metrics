@@ -33,23 +33,17 @@ def main():
     if flags['<path_to_git_repo>']:
         path_to_git_repo = flags['<path_to_git_repo>']
         repo_name = os.path.basename(os.path.abspath(path_to_git_repo))
-        run = mk_run(path_to_git_repo)
         if flags["lead-time"]:
             start_date = int(flags["--start-date"] or 0)
             pattern = flags['--deploy-tag-pattern'] or '*'
-            gen = commit_author_time_tag_author_time_and_from_to_tag_name(
-                run,
-                partial(fnmatch, pat=pattern),
-                start_date,
-            )
-            lead_time_data = ((tat-cat) for cat, tat, old_tag, tag in gen)
-            mean_seconds = statistics.mean(lead_time_data)
+            mean_seconds = calculate_lead_time(path_to_git_repo, pattern, start_date)
             print(f"Avarage lead time: {mean_seconds:.0f} seconds")
             print(f"Avarage lead time: {(mean_seconds / 3600):.0f} hours")
             print(f"Avarage lead time: {(mean_seconds / 86400):.0f} days")
         if flags["deploy-interval"]:
             start_date = int(flags["--start-date"] or 0)
             pattern = flags['--deploy-tag-pattern'] or '*'
+            run = mk_run(path_to_git_repo)
             gen = fetch_tags_and_dates(
                 run,
                 partial(fnmatch, pat=pattern),
@@ -64,6 +58,7 @@ def main():
             start_date = int(flags["--start-date"] or 0)
             deploy_pattern = flags['--deploy-tag-pattern'] or '*'
             patch_pattern = flags['--patch-tag-pattern'] or '*'
+            run = mk_run(path_to_git_repo)
             deploy_tags = fetch_tags_and_dates(
                 run,
                 partial(fnmatch, pat=deploy_pattern),
@@ -80,6 +75,7 @@ def main():
             start_date = int(flags["--start-date"] or 0)
             deploy_pattern = flags['--deploy-tag-pattern'] or '*'
             patch_pattern = flags['--patch-tag-pattern'] or '*'
+            run = mk_run(path_to_git_repo)
             deploy_tags = fetch_tags_and_dates(
                 run,
                 partial(fnmatch, pat=deploy_pattern),
@@ -99,6 +95,18 @@ def main():
             downtime = (end.time - start.time for start, end in outages)
 
             print(f"Recovery time: {deployments}")
+
+
+def calculate_lead_time(path_to_git_repo, pattern, start_date):
+    run = mk_run(path_to_git_repo)
+    gen = commit_author_time_tag_author_time_and_from_to_tag_name(
+        run,
+        partial(fnmatch, pat=pattern),
+        start_date,
+    )
+    lead_time_data = ((tat - cat) for cat, tat, old_tag, tag in gen)
+    mean_seconds = statistics.mean(lead_time_data)
+    return mean_seconds
 
 
 if __name__ == "__main__":

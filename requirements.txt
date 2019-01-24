@@ -3,3 +3,4 @@ docopt
 matplotlib
 pandas
 requests
+gitpython
