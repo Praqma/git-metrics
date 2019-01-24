@@ -5,7 +5,7 @@ import tempfile
 import pytest
 from git import Repo
 
-from calculate_four_metrics import calculate_lead_time
+from calculate_four_metrics import calculate_lead_time, calculate_deploy_interval
 
 
 @pytest.fixture
@@ -21,8 +21,8 @@ def repo_dir():
 
 @pytest.fixture
 def git_repo_DDDP(git_repo):
-    create_and_commit_file(git_repo, "file_zero", "initial commit", "Thu Jan 24 10:18:00 2019 +0100")
-    create_tag_with_date(git_repo, 'D-0.0.0', '0.0.0 deploy tag', "Thu Jan 24 10:19:00 2019 +0100")
+    create_and_commit_file(git_repo, "file_zero", "initial commit", "Thu Jan 24 10:17:00 2019 +0100")
+    create_tag_with_date(git_repo, 'D-0.0.0', '0.0.0 deploy tag', "Thu Jan 24 10:18:00 2019 +0100")
     create_and_commit_file(git_repo, "file_one", "second commit", "Thu Jan 24 10:20:00 2019 +0100")
     create_tag_with_date(git_repo, 'D-0.0.1', '0.0.1 deploy tag', "Thu Jan 24 10:21:00 2019 +0100")
     create_and_commit_file(git_repo, "file_two", "third commit", "Thu Jan 24 10:22:00 2019 +0100")
@@ -55,3 +55,10 @@ def test_lead_time(git_repo_DDDP):
     # Time from third commit to 0.0.2 release is 240 seconds.
     # Mean lead time is (60 + 240) / 2
     assert mean_lead_time == 150
+
+def test_calculate_deploy_interval(git_repo_DDDP):
+    interval_end = 1548322020 # Thu, 24 Jan 2019 10:27:00 CET in epoch time
+    interval_length = 600 # 10 minutes
+    interval = calculate_deploy_interval(git_repo_DDDP.working_dir, "D-*", interval_end - interval_length, interval_end)
+    # Three deployments within the interval so deployment interval is 600 seconds divided by three
+    assert interval == 200

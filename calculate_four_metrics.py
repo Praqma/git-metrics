@@ -36,21 +36,14 @@ def main():
         if flags["lead-time"]:
             start_date = int(flags["--start-date"] or 0)
             pattern = flags['--deploy-tag-pattern'] or '*'
-            mean_seconds = calculate_lead_time(path_to_git_repo, pattern, start_date)
+            mean_seconds = calculate_lead_time(repo_name, pattern, start_date)
             print(f"Avarage lead time: {mean_seconds:.0f} seconds")
             print(f"Avarage lead time: {(mean_seconds / 3600):.0f} hours")
             print(f"Avarage lead time: {(mean_seconds / 86400):.0f} days")
         if flags["deploy-interval"]:
             start_date = int(flags["--start-date"] or 0)
             pattern = flags['--deploy-tag-pattern'] or '*'
-            run = mk_run(path_to_git_repo)
-            gen = fetch_tags_and_dates(
-                run,
-                partial(fnmatch, pat=pattern),
-                start_date,
-            )
-            deployment_data = set(tat for tag, tat in gen)
-            interval_seconds = (now - start_date) / len(deployment_data)
+            interval_seconds = calculate_deploy_interval(repo_name, pattern, start_date, now)
             print(f"Release interval: {interval_seconds:.0f} seconds")
             print(f"Release interval: {(interval_seconds / 3600):.0f} hours")
             print(f"Release interval: {(interval_seconds / 86400):.0f} days")
@@ -95,6 +88,19 @@ def main():
             downtime = (end.time - start.time for start, end in outages)
 
             print(f"Recovery time: {deployments}")
+
+
+def calculate_deploy_interval(path_to_git_repo, pattern, start_date, now):
+    run = mk_run(path_to_git_repo)
+    gen = fetch_tags_and_dates(
+        run,
+        partial(fnmatch, pat=pattern),
+        start_date,
+    )
+    deployment_data = set(tat for tag, tat in gen)
+    print(f"Deployment times: {deployment_data}")
+    interval_seconds = (now - start_date) / len(deployment_data)
+    return interval_seconds
 
 
 def calculate_lead_time(path_to_git_repo, pattern, start_date):
