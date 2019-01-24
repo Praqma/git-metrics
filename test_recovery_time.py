@@ -1,4 +1,4 @@
-from recovery_time import find_outages, split_sequence, Deployment
+from recovery_time import find_outages, split_sequence, Deployment, find_is_patch
 
 deployment_zero = Deployment(False, 0)
 deployment_two = Deployment(False, 2)
@@ -50,3 +50,17 @@ def test_begin_with_patch():
     results = find_outages([patch_one, deployment_two, patch_three])
     assert results == [(deployment_two, patch_three)]
 
+
+def test_find_is_patch():
+    deployment_name = "D-0.0.0"
+    deploy_list = [('D-0.0.0', 1548321420), ('D-0.0.1', 1548321600), ('D-0.0.2', 1548321720)]
+    patch_list = [('P-0.0.2', 1548321720)]
+    result = find_is_patch(deployment_name, deploy_list, patch_list)
+    assert not result
+
+def test_find_is_patch_when_it_is_a_patch():
+    deployment_name = "D-0.0.2"
+    deploy_list = [('D-0.0.0', 1548321420), ('D-0.0.1', 1548321600), ('D-0.0.2', 1548321720)]
+    patch_list = [('P-0.0.2', 1548321720)]
+    result = find_is_patch(deployment_name, deploy_list, patch_list)
+    assert result

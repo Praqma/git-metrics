@@ -30,9 +30,14 @@ def split_sequence(deployments):
         yield split
 
 
-def find_patch(deployment_name, patch_tags):
-    return filter(
-        lambda p: p.endswith(deployment_name[2:]), patch_tags)
+def find_is_patch(deployment_name, deploy_tags, patch_tags):
+    deploy = list(filter(
+        lambda d: d[0] == deployment_name, deploy_tags))
+    if not deploy:
+        raise ValueError(f"Deployment {deployment_name} not found in list {list(deploy_tags)}")
+    deploy_commit_time = deploy[0][1]
+    return bool(list(filter(
+        lambda p: p[1] == deploy_commit_time, patch_tags)))
 
 
 @dataclass

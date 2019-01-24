@@ -5,7 +5,8 @@ import tempfile
 import pytest
 from git import Repo
 
-from calculate_four_metrics import calculate_lead_time, calculate_deploy_interval, calculate_change_fail_rate
+from calculate_four_metrics import calculate_lead_time, calculate_deploy_interval, calculate_change_fail_rate, \
+    calculate_MTTR
 
 
 @pytest.fixture
@@ -28,8 +29,8 @@ def git_repo_DDDP(git_repo):
     create_and_commit_file(git_repo, "file_two", "third commit", "Thu Jan 24 10:22:00 2019 +0100")
     create_tag_with_date(git_repo, 'D-0.0.2', '0.0.2 deploy tag', "Thu Jan 24 10:26:00 2019 +0100")
     git_repo.create_tag("P-0.0.2", message="0.0.2 patch tag")
-    print(subprocess.run(['git', 'tag'], cwd=git_repo.working_dir))
-    print(subprocess.run(['git', 'log'], cwd=git_repo.working_dir))
+    # print(subprocess.run(['git', 'tag'], cwd=git_repo.working_dir))
+    # print(subprocess.run(['git', 'log'], cwd=git_repo.working_dir))
     yield git_repo
 
 
@@ -39,13 +40,13 @@ def create_and_commit_file(git_repo, file_name, message, commmiterdate):
     git_repo.index.add([file_name])
     command = ['git', 'commit', '-m', message]
     result = subprocess.run(command, cwd=git_repo.working_dir, env={"GIT_AUTHOR_DATE": commmiterdate})
-    print(result)
+    # print(result)
 
 
 def create_tag_with_date(git_repo, tag, message, taggerdate):
     command = ['git', 'tag', '-m', message, tag]
     result = subprocess.run(command, cwd=git_repo.working_dir, env={"GIT_COMMITTER_DATE": taggerdate})
-    print(result)
+    # print(result)
 
 
 def test_lead_time(git_repo_DDDP):
@@ -69,4 +70,8 @@ def test_calculate_change_fail_rate(git_repo_DDDP):
     fail_rate = calculate_change_fail_rate(git_repo_DDDP.working_dir, "D-*", "P-*", 0)
     # We have three deployments, one is a patch. Failure rate is one in three or ~33%.
     assert fail_rate == pytest.approx((1/3) * 100, 0.1)
+
+def test_calculate_MTTR(git_repo_DDDP):
+    MTTR = calculate_MTTR(git_repo_DDDP.working_dir, "D-*", "P-*", 0)
+    assert MTTR == 5*60
 

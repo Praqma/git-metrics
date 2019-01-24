@@ -22,9 +22,10 @@ from functools import partial
 
 import docopt
 
-from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name, fetch_tags_and_dates
+from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name, \
+    fetch_tags_and_author_dates, fetch_tags_and_commit_dates
 from process import mk_run
-from recovery_time import Deployment, find_patch, find_outages
+from recovery_time import Deployment, find_is_patch, find_outages
 
 
 def main():
@@ -57,36 +58,45 @@ def main():
             start_date = int(flags["--start-date"] or 0)
             deploy_pattern = flags['--deploy-tag-pattern'] or '*'
             patch_pattern = flags['--patch-tag-pattern'] or '*'
-            run = mk_run(path_to_git_repo)
-            deploy_tags = fetch_tags_and_dates(
-                run,
-                partial(fnmatch, pat=deploy_pattern),
-                start_date,
-            )
-            patch_tags = fetch_tags_and_dates(
-                run,
-                partial(fnmatch, pat=patch_pattern),
-                start_date,
-            )
-            deployments = []
-            for deployment in deploy_tags:
-                patch = find_patch(deployment[0], patch_tags)
-                deployments.append(Deployment(patch is not None, deployment[1]))
-
-            outages = find_outages(deployments)
-            downtime = (end.time - start.time for start, end in outages)
-
-            print(f"Recovery time: {deployments}")
+            MTTR = calculate_MTTR(repo_name, deploy_pattern, patch_pattern, start_date)
+            print(f"Recovery time: {MTTR}")
 
 
-def calculate_change_fail_rate(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
+def calculate_MTTR(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
     run = mk_run(path_to_git_repo)
-    deploy_tags = fetch_tags_and_dates(
+    deploy_tags_author_date = fetch_tags_and_author_dates(
         run,
         partial(fnmatch, pat=deploy_pattern),
         start_date,
     )
-    patch_tags = fetch_tags_and_dates(
+    deploy_tags_commit_date = list(fetch_tags_and_commit_dates(
+        run,
+        partial(fnmatch, pat=deploy_pattern),
+        start_date,
+    ))
+    patch_tags_with_commit_date = list(fetch_tags_and_commit_dates(
+        run,
+        partial(fnmatch, pat=patch_pattern),
+        start_date,
+    ))
+    deployments = []
+    for deployment in deploy_tags_author_date:
+        is_patch = find_is_patch(deployment[0], deploy_tags_commit_date, patch_tags_with_commit_date)
+        deployments.append(Deployment(is_patch, deployment[1]))
+    print(f"{deployments}")
+    outages = find_outages(deployments)
+    downtime = (end.time - start.time for start, end in outages)
+    return statistics.mean(downtime)
+
+
+def calculate_change_fail_rate(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
+    run = mk_run(path_to_git_repo)
+    deploy_tags = fetch_tags_and_author_dates(
+        run,
+        partial(fnmatch, pat=deploy_pattern),
+        start_date,
+    )
+    patch_tags = fetch_tags_and_author_dates(
         run,
         partial(fnmatch, pat=patch_pattern),
         start_date,
@@ -97,7 +107,7 @@ def calculate_change_fail_rate(path_to_git_repo, deploy_pattern, patch_pattern, 
 
 def calculate_deploy_interval(path_to_git_repo, pattern, start_date, now):
     run = mk_run(path_to_git_repo)
-    gen = fetch_tags_and_dates(
+    gen = fetch_tags_and_author_dates(
         run,
         partial(fnmatch, pat=pattern),
         start_date,
