@@ -9,18 +9,18 @@ from calculate_four_metrics import calculate_lead_time, calculate_deploy_interva
     calculate_MTTR
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def git_repo(repo_dir):
     r = Repo.init(repo_dir)
     yield r
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def repo_dir():
     repo_dir = tempfile.mkdtemp()
     return repo_dir
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def git_repo_DDDP(git_repo):
     create_and_commit_file(git_repo, "file_zero", "initial commit", "Thu Jan 24 10:17:00 2019 +0100")
     create_tag_with_date(git_repo, 'D-0.0.0', '0.0.0 deploy tag', "Thu Jan 24 10:18:00 2019 +0100")
