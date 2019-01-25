@@ -70,6 +70,7 @@ def main():
 def calculate_MTTR(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
     run = mk_run(path_to_git_repo)
     match_deploy = partial(fnmatch, pat=deploy_pattern)
+    match_patch = partial(fnmatch, pat=patch_pattern)
     deploy_tags_author_date = fetch_tags_and_author_dates(
         run,
         match_deploy,
@@ -79,7 +80,7 @@ def calculate_MTTR(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
     patch_dates = set(
         date
         for _tag, date
-        in fetch_tags_and_sha(run, partial(fnmatch, pat=patch_pattern))
+        in fetch_tags_and_sha(run, match_patch)
     )
     deployments = []
     for deploy_tag, deploy_date in deploy_tags_author_date:
