@@ -89,9 +89,9 @@ def calculate_MTTR(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
         )
     )
     deployments = []
-    for deployment in deploy_tags_author_date:
-        is_patch = find_is_patch(deployment[0], deploy_tags_commit_date, patch_dates)
-        deployments.append(Deployment(is_patch, deployment[1]))
+    for deploy_tag, deploy_date in deploy_tags_author_date:
+        is_patch = find_is_patch(deploy_tag, deploy_tags_commit_date, patch_dates)
+        deployments.append(Deployment(is_patch, deploy_date))
     outages = find_outages(deployments)
     downtime = (end.time - start.time for start, end in outages)
     return statistics.mean(downtime)
