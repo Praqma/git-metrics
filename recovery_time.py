@@ -30,13 +30,9 @@ def split_sequence(deployments):
         yield split
 
 
-def find_is_patch(deployment_name, deploy_tags, patch_tags):
+def find_is_patch(deployment_name, deploy_tags, patch_dates):
     deploy_date = deploy_tags[deployment_name]
-    return any(
-        date == deploy_date
-        for tag_name, date
-        in patch_tags
-    )
+    return deploy_date in patch_dates
 
 
 @dataclass

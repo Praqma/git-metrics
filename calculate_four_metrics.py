@@ -79,14 +79,18 @@ def calculate_MTTR(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
         partial(fnmatch, pat=deploy_pattern),
         start_date,
     ))
-    patch_tags_with_commit_date = list(fetch_tags_and_commit_dates(
-        run,
-        partial(fnmatch, pat=patch_pattern),
-        start_date,
-    ))
+    patch_dates = set(
+        date
+        for _tag, date
+        in fetch_tags_and_commit_dates(
+            run,
+            partial(fnmatch, pat=patch_pattern),
+            start_date,
+        )
+    )
     deployments = []
     for deployment in deploy_tags_author_date:
-        is_patch = find_is_patch(deployment[0], deploy_tags_commit_date, patch_tags_with_commit_date)
+        is_patch = find_is_patch(deployment[0], deploy_tags_commit_date, patch_dates)
         deployments.append(Deployment(is_patch, deployment[1]))
     outages = find_outages(deployments)
     downtime = (end.time - start.time for start, end in outages)
