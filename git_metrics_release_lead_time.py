@@ -19,6 +19,11 @@ TAGS_WITH_COMMIT_DATE_CMD = for_each_ref(
     format='%(refname:short) %(*authordate:unix)',
 )
 
+TAGS_WITH_COMMIT_SHA_CMD = for_each_ref(
+    'refs/tags/**',
+    format='%(refname:short) %(*objectname)',
+)
+
 
 def tags_with_author_date(run) -> Iterable[Tuple[str, int]]:
     proc = run(TAGS_WITH_AUTHOR_DATE_CMD)
@@ -70,6 +75,18 @@ def fetch_tags_and_author_dates(run, match_tag, earliest_date=0):
         tags_and_date
     )
     return filtered_on_tags_date
+
+
+def fetch_tags_and_sha(run):
+    proc = run(TAGS_WITH_COMMIT_SHA_CMD)
+    stdout = proc_to_stdout(proc)
+    return (
+        (tag_and_maybe_sha[0], tag_and_maybe_sha[1])
+        for tag_and_maybe_sha
+        in columns(stdout)
+        if len(tag_and_maybe_sha) > 1
+    )
+
 
 
 def fetch_tags_and_commit_dates(run, match_tag, earliest_date=0):
