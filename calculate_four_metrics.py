@@ -26,7 +26,7 @@ from functools import partial
 import docopt
 
 from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name, \
-    fetch_tags_and_author_dates, fetch_tags_and_commit_dates
+    fetch_tags_and_author_dates, fetch_tags_and_sha
 from process import mk_run
 from recovery_time import Deployment, find_is_patch, find_outages
 
@@ -69,24 +69,17 @@ def main():
 
 def calculate_MTTR(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
     run = mk_run(path_to_git_repo)
+    match_deploy = partial(fnmatch, pat=deploy_pattern)
     deploy_tags_author_date = fetch_tags_and_author_dates(
         run,
-        partial(fnmatch, pat=deploy_pattern),
+        match_deploy,
         start_date,
     )
-    deploy_tags_commit_date = dict(fetch_tags_and_commit_dates(
-        run,
-        partial(fnmatch, pat=deploy_pattern),
-        start_date,
-    ))
+    deploy_tags_commit_date = dict(fetch_tags_and_sha(run, match_deploy))
     patch_dates = set(
         date
         for _tag, date
-        in fetch_tags_and_commit_dates(
-            run,
-            partial(fnmatch, pat=patch_pattern),
-            start_date,
-        )
+        in fetch_tags_and_sha(run, partial(fnmatch, pat=patch_pattern))
     )
     deployments = []
     for deploy_tag, deploy_date in deploy_tags_author_date:

@@ -14,11 +14,6 @@ TAGS_WITH_AUTHOR_DATE_CMD = for_each_ref(
     sort='taggerdate'
 )
 
-TAGS_WITH_COMMIT_DATE_CMD = for_each_ref(
-    'refs/tags/**',
-    format='%(refname:short) %(*authordate:unix)',
-)
-
 TAGS_WITH_COMMIT_SHA_CMD = for_each_ref(
     'refs/tags/**',
     format='%(refname:short) %(*objectname)',
@@ -27,12 +22,6 @@ TAGS_WITH_COMMIT_SHA_CMD = for_each_ref(
 
 def tags_with_author_date(run) -> Iterable[Tuple[str, int]]:
     proc = run(TAGS_WITH_AUTHOR_DATE_CMD)
-    stdout = proc_to_stdout(proc)
-    return parse_tags_with_date(stdout)
-
-
-def tags_with_commit_date(run) -> Iterable[Tuple[str, int]]:
-    proc = run(TAGS_WITH_COMMIT_DATE_CMD)
     stdout = proc_to_stdout(proc)
     return parse_tags_with_date(stdout)
 
@@ -77,25 +66,15 @@ def fetch_tags_and_author_dates(run, match_tag, earliest_date=0):
     return filtered_on_tags_date
 
 
-def fetch_tags_and_sha(run):
+def fetch_tags_and_sha(run, match_tag):
     proc = run(TAGS_WITH_COMMIT_SHA_CMD)
     stdout = proc_to_stdout(proc)
     return (
         (tag_and_maybe_sha[0], tag_and_maybe_sha[1])
         for tag_and_maybe_sha
         in columns(stdout)
-        if len(tag_and_maybe_sha) > 1
+        if len(tag_and_maybe_sha) > 1 and match_tag(tag_and_maybe_sha[0])
     )
-
-
-
-def fetch_tags_and_commit_dates(run, match_tag, earliest_date=0):
-    tags_and_date = tags_with_commit_date(run)
-    filtered_on_tags_date = filter(
-        lambda p: match_tag(p[0]) and p[1] > earliest_date,
-        tags_and_date
-    )
-    return filtered_on_tags_date
 
 
 def plot_release_lead_time_metrics(data):

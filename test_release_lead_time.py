@@ -33,7 +33,7 @@ def test_fetch_tags_and_sha():
     result = fetch_tags_and_sha(lambda _: stdout([
         "annotated-tag sha",
         "lightweight-tag"
-    ]))
+    ]), lambda _: True)
     assert list(result) == [
         ("annotated-tag", "sha")
     ]
