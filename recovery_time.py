@@ -31,13 +31,20 @@ def split_sequence(deployments):
 
 
 def find_is_patch(deployment_name, deploy_tags, patch_tags):
-    deploy = list(filter(
-        lambda d: d[0] == deployment_name, deploy_tags))
+    deploy = [
+        date
+        for tag_name, date
+        in deploy_tags
+        if tag_name == deployment_name
+    ]
     if not deploy:
         raise ValueError(f"Deployment {deployment_name} not found in list {list(deploy_tags)}")
-    deploy_commit_time = deploy[0][1]
-    return bool(list(filter(
-        lambda p: p[1] == deploy_commit_time, patch_tags)))
+    deploy_date = deploy[0]
+    return any(
+        date == deploy_date
+        for tag_name, date
+        in patch_tags
+    )
 
 
 @dataclass
