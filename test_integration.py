@@ -46,14 +46,24 @@ def create_tag_with_date(git_repo, tag, message, taggerdate):
     subprocess.run(command, cwd=git_repo.working_dir, env={"GIT_COMMITTER_DATE": taggerdate})
 
 
-def test_lead_time(git_repo_DDDP):
-    mean_lead_time = calculate_lead_time(git_repo_DDDP.working_dir, "D-*", 0)
-    # First commit is ignored.
+def test_lead_time_multiple_deploys(git_repo_DDDP):
+    mean_lead_time = calculate_lead_time(git_repo_DDDP.working_dir, "D-*", 1548321540)
+    # First commit is before earliest date.
     # Time from second commit to 0.0.1 release is 60 seconds.
     # Time from third commit to 0.0.2 release is 240 seconds.
     # Time from fourth commit to 0.0.2 release is 120 seconds.
     # Mean lead time is (60 + 240 + 120) / 3
     assert mean_lead_time == 140
+
+
+def test_lead_time_single_deploy(git_repo_DDDP):
+    mean_lead_time = calculate_lead_time(git_repo_DDDP.working_dir, "D-*", 1548321660)
+    # First commit is before earliest date.
+    # Second commit is before earliest date.
+    # Time from third commit to 0.0.2 release is 240 seconds.
+    # Time from fourth commit to 0.0.2 release is 120 seconds.
+    # Mean lead time is (240 + 120) / 2
+    assert mean_lead_time == 180
 
 
 def test_calculate_deploy_interval(git_repo_DDDP):
