@@ -47,15 +47,17 @@ def main():
             print(f"Avarage lead time: {(mean_seconds / 86400):.0f} days")
         if flags["deploy-interval"]:
             interval_seconds = calculate_deploy_interval(path_to_git_repo, deploy_pattern, start_date, now)
-            print(f"Release interval: {interval_seconds:.0f} seconds")
-            print(f"Release interval: {(interval_seconds / 3600):.0f} hours")
-            print(f"Release interval: {(interval_seconds / 86400):.0f} days")
+            print(f"Deploy interval: {interval_seconds:.0f} seconds")
+            print(f"Deploy interval: {(interval_seconds / 3600):.0f} hours")
+            print(f"Deploy interval: {(interval_seconds / 86400):.0f} days")
         if flags["change-fail-rate"]:
             change_fail_rate = calculate_change_fail_rate(path_to_git_repo, deploy_pattern, patch_pattern, start_date)
             print(f"Change failure rate: {change_fail_rate:.1f}%")
         if flags["recovery-time"]:
             MTTR = calculate_MTTR(path_to_git_repo, deploy_pattern, patch_pattern, start_date)
-            print(f"Recovery time: {MTTR}")
+            print(f"Recovery time: {MTTR} seconds")
+            print(f"Recovery time: {(MTTR / 3600):.0f} hours")
+            print(f"Recovery time: {(MTTR / 86400):.0f} days")
         if flags["metrics-all"]:
             lead_time = calculate_lead_time(path_to_git_repo, deploy_pattern, start_date)
             interval = calculate_deploy_interval(path_to_git_repo, deploy_pattern, start_date, now)
@@ -63,7 +65,6 @@ def main():
             MTTR = calculate_MTTR(path_to_git_repo, deploy_pattern, patch_pattern, start_date)
             data = [lead_time, interval, change_fail_rate, MTTR, repo_name]
             write_four_metrics_csv_file(map(lambda d: str(d), data))
-
 
 
 def calculate_MTTR(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
