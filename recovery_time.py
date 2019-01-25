@@ -31,15 +31,7 @@ def split_sequence(deployments):
 
 
 def find_is_patch(deployment_name, deploy_tags, patch_tags):
-    deploy = [
-        date
-        for tag_name, date
-        in deploy_tags
-        if tag_name == deployment_name
-    ]
-    if not deploy:
-        raise ValueError(f"Deployment {deployment_name} not found in list {list(deploy_tags)}")
-    deploy_date = deploy[0]
+    deploy_date = deploy_tags[deployment_name]
     return any(
         date == deploy_date
         for tag_name, date

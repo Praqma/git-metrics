@@ -74,7 +74,7 @@ def calculate_MTTR(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
         partial(fnmatch, pat=deploy_pattern),
         start_date,
     )
-    deploy_tags_commit_date = list(fetch_tags_and_commit_dates(
+    deploy_tags_commit_date = dict(fetch_tags_and_commit_dates(
         run,
         partial(fnmatch, pat=deploy_pattern),
         start_date,
