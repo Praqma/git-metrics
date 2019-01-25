@@ -27,6 +27,7 @@ def git_repo_DDDP(git_repo):
     create_and_commit_file(git_repo, "file_one", "second commit", "Thu Jan 24 10:20:00 2019 +0100")
     create_tag_with_date(git_repo, 'D-0.0.1', '0.0.1 deploy tag', "Thu Jan 24 10:21:00 2019 +0100")
     create_and_commit_file(git_repo, "file_two", "third commit", "Thu Jan 24 10:22:00 2019 +0100")
+    create_and_commit_file(git_repo, "file_three", "fourth commit", "Thu Jan 24 10:24:00 2019 +0100")
     create_tag_with_date(git_repo, 'D-0.0.2', '0.0.2 deploy tag', "Thu Jan 24 10:26:00 2019 +0100")
     git_repo.create_tag("P-0.0.2", message="0.0.2 patch tag")
     yield git_repo
@@ -50,8 +51,9 @@ def test_lead_time(git_repo_DDDP):
     # First commit is ignored.
     # Time from second commit to 0.0.1 release is 60 seconds.
     # Time from third commit to 0.0.2 release is 240 seconds.
-    # Mean lead time is (60 + 240) / 2
-    assert mean_lead_time == 150
+    # Time from fourth commit to 0.0.2 release is 120 seconds.
+    # Mean lead time is (60 + 240 + 120) / 3
+    assert mean_lead_time == 140
 
 
 def test_calculate_deploy_interval(git_repo_DDDP):
