@@ -141,3 +141,11 @@ which will show basic usage information like:
 * To _save data_ use without plot and pipe to file for csv format: `git_metrics.py release-lead-time <path_to_git-repo> > my-csv-file.csv`
 * Use plot command to plot existing csv files, e.g. `git_metrics.py plot --release-lead-time my-csv-file.csv`
 * `batch` (undocumented)
+
+## Developer information
+
+Run the self-tests using pytest:
+
+    pytest -v
+
+
