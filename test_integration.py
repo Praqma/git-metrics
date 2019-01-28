@@ -29,7 +29,7 @@ def git_repo_DDDP(git_repo):
     create_and_commit_file(git_repo, "file_two", "third commit", "Thu Jan 24 10:22:00 2019 +0100")
     create_and_commit_file(git_repo, "file_three", "fourth commit", "Thu Jan 24 10:24:00 2019 +0100")
     create_tag_with_date(git_repo, 'D-0.0.2', '0.0.2 deploy tag', "Thu Jan 24 10:26:00 2019 +0100")
-    git_repo.create_tag("P-0.0.2", message="0.0.2 patch tag")
+    create_tag_with_date(git_repo, "P-0.0.2", "0.0.2 patch tag", "Fri Jan 25 10:00:00 2019 +0100")
     yield git_repo
 
 
@@ -38,12 +38,22 @@ def create_and_commit_file(git_repo, file_name, message, commmiterdate):
     open(os.path.join(git_repo.working_dir, file_name), 'wb').close()
     git_repo.index.add([file_name])
     command = ['git', 'commit', '-m', message]
-    subprocess.run(command, cwd=git_repo.working_dir, env={"GIT_AUTHOR_DATE": commmiterdate})
+    _run_git_cmd(git_repo, command, {"GIT_AUTHOR_DATE": commmiterdate})
 
 
 def create_tag_with_date(git_repo, tag, message, taggerdate):
     command = ['git', 'tag', '-m', message, tag]
-    subprocess.run(command, cwd=git_repo.working_dir, env={"GIT_COMMITTER_DATE": taggerdate})
+    _run_git_cmd(git_repo, command, {"GIT_COMMITTER_DATE": taggerdate})
+
+def _run_git_cmd(git_repo, command, environment):
+    env_variables = {"GIT_COMMITTER_EMAIL": "test@example.com",
+                    "GIT_COMMITTER_NAME": "Integration Test",
+                    "GIT_AUTHOR_EMAIL": "test@example.com",
+                    "GIT_AUTHOR_NAME": "Integration Test",
+                    "EMAIL": "test@example.com"}
+    env_variables.update(environment)
+    subprocess.run(command, cwd=git_repo.working_dir, 
+        env=env_variables)
 
 
 def test_lead_time_multiple_deploys(git_repo_DDDP):
