@@ -10,7 +10,7 @@ from process import proc_to_stdout
 
 TAGS_WITH_AUTHOR_DATE_CMD = for_each_ref(
     'refs/tags/**',
-    format='%(refname:short) %(creatordate:unix)',
+    format='%(refname:short) %(taggerdate:unix)',
     sort='taggerdate'
 )
 
