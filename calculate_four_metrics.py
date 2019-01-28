@@ -12,8 +12,6 @@ Usage:
     calculate_four_metrics.py metrics-all [--deploy-tag-pattern=<fn_match>] [--patch-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
     calculate_four_metrics.py (-h | --help)
 
-    Options:
-        --master-branch=<branch>    example: origin/gh-pages
 """
 import csv
 import sys
