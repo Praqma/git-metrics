@@ -93,3 +93,22 @@ def test_calculate_MTTR(git_repo_DDDP):
     MTTR = calculate_MTTR(git_repo_DDDP.working_dir, "D-*", "P-*", 0)
     assert MTTR == 5*60
 
+def test_calculate_MTTR_no_matching_tags(git_repo_DDDP):
+    MTTR = calculate_MTTR(git_repo_DDDP.working_dir, "FOO*", "BAR*", 0)
+    assert MTTR == "N/A" # no deploys or patches
+
+def test_calculate_change_fail_rate_no_matching_tags(git_repo_DDDP):
+    fail_rate = calculate_change_fail_rate(git_repo_DDDP.working_dir, "FOO*", "BAR*", 0)
+    assert fail_rate == "N/A" # no deploys or patches
+
+
+def test_calculate_deploy_interval_no_matching_tags(git_repo_DDDP):
+    interval_end = 1548322020 # Thu, 24 Jan 2019 10:27:00 CET in epoch time
+    interval_length = 600 # 10 minutes
+    interval = calculate_deploy_interval(git_repo_DDDP.working_dir, "FOO*", interval_end - interval_length, interval_end)
+    assert interval == "N/A" # no deploys
+
+def test_lead_time_multiple_deploys(git_repo_DDDP):
+    mean_lead_time = calculate_lead_time(git_repo_DDDP.working_dir, "FOO*", 1548321540)
+    assert mean_lead_time == "N/A"
+

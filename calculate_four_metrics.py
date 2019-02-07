@@ -85,24 +85,23 @@ def calculate_MTTR(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
         is_patch = find_is_patch(deploy_tag, deploy_tags_commit_date, patch_dates)
         deployments.append(Deployment(is_patch, deploy_date))
     outages = find_outages(deployments)
-    downtime = (end.time - start.time for start, end in outages)
-    return statistics.mean(downtime)
+    downtime = [end.time - start.time for start, end in outages]
+    return statistics.mean(downtime) if downtime else "N/A"
 
 
 def calculate_change_fail_rate(path_to_git_repo, deploy_pattern, patch_pattern, start_date):
     run = mk_run(path_to_git_repo)
-    deploy_tags = fetch_tags_and_author_dates(
+    deploy_tags = list(fetch_tags_and_author_dates(
         run,
         partial(fnmatch, pat=deploy_pattern),
         start_date,
-    )
-    patch_tags = fetch_tags_and_author_dates(
+    ))
+    patch_tags = list(fetch_tags_and_author_dates(
         run,
         partial(fnmatch, pat=patch_pattern),
         start_date,
-    )
-    change_fail_rate = len(list(patch_tags)) / len(list(deploy_tags)) * 100
-    return change_fail_rate
+    ))
+    return len(patch_tags) / len(deploy_tags) * 100 if deploy_tags else "N/A"
 
 
 def calculate_deploy_interval(path_to_git_repo, pattern, start_date, now):
@@ -113,7 +112,7 @@ def calculate_deploy_interval(path_to_git_repo, pattern, start_date, now):
         start_date,
     )
     deployment_data = set(tat for tag, tat in gen)
-    interval_seconds = (now - start_date) / len(deployment_data)
+    interval_seconds = (now - start_date) / len(deployment_data) if deployment_data else "N/A"
     return interval_seconds
 
 
@@ -124,10 +123,9 @@ def calculate_lead_time(path_to_git_repo, pattern, start_date):
         partial(fnmatch, pat=pattern),
         start_date,
     )
-    lead_time_data = ((tat - cat) for cat, tat, old_tag, tag in gen)
-    mean_seconds = statistics.mean(lead_time_data)
-    return mean_seconds
-
+    lead_time_data = [(tat - cat) for cat, tat, old_tag, tag in gen]
+    return statistics.mean(lead_time_data) if lead_time_data else "N/A"
+    
 
 def write_four_metrics_csv_file(data):
     writer = csv.writer(sys.stdout, delimiter=',', lineterminator='\n')
