@@ -5,6 +5,7 @@ __pycache__
 *.iml
 .idea
 .pytest_cache
+*.log
 
 # Exclude meta files
 *META-INF/
