@@ -1,7 +1,3 @@
----
-maintainer: neppord, emilybache
----
-
 # Git Metrics
 
 You can use the scripts in this repository to analyse another git repository for metrics such as lead time and open branches. You should clone the repository you wish to analyse, to a local directory before using these scripts. Some of the metrics, require there to be annotated tags on some of the commits.
