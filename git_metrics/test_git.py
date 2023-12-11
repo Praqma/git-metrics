@@ -1,5 +1,5 @@
-from custom_git import for_each_ref, cherry, show
-from custom_git import log
+from .custom_git import for_each_ref, cherry, show
+from .custom_git import log
 
 
 def test_for_each_ref_normal():

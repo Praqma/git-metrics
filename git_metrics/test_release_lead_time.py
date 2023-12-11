@@ -1,10 +1,10 @@
 from collections import namedtuple
 from contextlib import contextmanager
 
-from git_metrics_release_lead_time import parse_tags_with_date
-from git_metrics_release_lead_time import tags_with_author_date
-from git_metrics_release_lead_time import fetch_tags_and_sha
-import git_metrics_release_lead_time
+from .git_metrics_release_lead_time import parse_tags_with_date
+from .git_metrics_release_lead_time import tags_with_author_date
+from .git_metrics_release_lead_time import fetch_tags_and_sha
+from . import git_metrics_release_lead_time
 
 
 def test_parse_tags_with_author_date():

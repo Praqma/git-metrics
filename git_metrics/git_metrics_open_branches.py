@@ -1,5 +1,5 @@
-from data import columns
-from custom_git import for_each_ref, log
+from .data import columns
+from .custom_git import for_each_ref, log
 
 
 def plot_open_branches_metrics(data):

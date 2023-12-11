@@ -1,7 +1,7 @@
 import os
 from subprocess import Popen, PIPE
 
-from process import proc_to_stdout
+from .process import proc_to_stdout
 
 
 def test_proc_to_pocess():

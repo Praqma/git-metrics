@@ -5,7 +5,7 @@ import tempfile
 import pytest
 from git import Repo
 
-from calculate_four_metrics import calculate_lead_time, calculate_deploy_interval, calculate_change_fail_rate, \
+from .calculate_four_metrics import calculate_lead_time, calculate_deploy_interval, calculate_change_fail_rate, \
     calculate_MTTR
 
 
@@ -52,7 +52,7 @@ def _run_git_cmd(git_repo, command, environment):
                     "GIT_AUTHOR_NAME": "Integration Test",
                     "EMAIL": "test@example.com"}
     env_variables.update(environment)
-    subprocess.run(command, cwd=git_repo.working_dir, 
+    subprocess.run(command, cwd=git_repo.working_dir,
         env=env_variables)
 
 
@@ -111,4 +111,3 @@ def test_calculate_deploy_interval_no_matching_tags(git_repo_DDDP):
 def test_lead_time_multiple_deploys(git_repo_DDDP):
     mean_lead_time = calculate_lead_time(git_repo_DDDP.working_dir, "FOO*", 1548321540)
     assert mean_lead_time == "N/A"
-

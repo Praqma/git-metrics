@@ -5,12 +5,12 @@
     * Mean time to recover
 
 Usage:
-    calculate_four_metrics.py lead-time [--deploy-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
-    calculate_four_metrics.py deploy-interval [--deploy-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
-    calculate_four_metrics.py change-fail-rate [--deploy-tag-pattern=<fn_match>] [--patch-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
-    calculate_four_metrics.py recovery-time [--deploy-tag-pattern=<fn_match>] [--patch-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
-    calculate_four_metrics.py metrics-all [--deploy-tag-pattern=<fn_match>] [--patch-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
-    calculate_four_metrics.py (-h | --help)
+    calculate-four-metrics lead-time [--deploy-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
+    calculate-four-metrics deploy-interval [--deploy-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
+    calculate-four-metrics change-fail-rate [--deploy-tag-pattern=<fn_match>] [--patch-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
+    calculate-four-metrics recovery-time [--deploy-tag-pattern=<fn_match>] [--patch-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
+    calculate-four-metrics metrics-all [--deploy-tag-pattern=<fn_match>] [--patch-tag-pattern=<fn_match>] [--start-date=<timestamp>] <path_to_git_repo>
+    calculate-four-metrics (-h | --help)
 
 """
 import csv
@@ -24,10 +24,10 @@ import logging
 
 import docopt
 
-from git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name, \
+from .git_metrics_release_lead_time import commit_author_time_tag_author_time_and_from_to_tag_name, \
     fetch_tags_and_author_dates, fetch_tags_and_sha
-from process import mk_run
-from recovery_time import Deployment, find_is_patch, find_outages
+from .process import mk_run
+from .recovery_time import Deployment, find_is_patch, find_outages
 
 
 def configure_logging():
@@ -143,7 +143,7 @@ def calculate_lead_time(path_to_git_repo, pattern, start_date):
     log.info("calculating lead time data from deployments %s", deployment_tag_pairs)
     lead_time_data = [(tat - cat) for cat, tat, old_tag, tag in deployment_data]
     return statistics.mean(lead_time_data) if lead_time_data else "N/A"
-    
+
 
 def write_four_metrics_csv_file(data):
     writer = csv.writer(sys.stdout, delimiter=',', lineterminator='\n')

@@ -1,4 +1,4 @@
-from recovery_time import find_outages, split_sequence, Deployment, find_is_patch
+from .recovery_time import find_outages, split_sequence, Deployment, find_is_patch
 
 deployment_zero = Deployment(False, 0)
 deployment_two = Deployment(False, 2)
