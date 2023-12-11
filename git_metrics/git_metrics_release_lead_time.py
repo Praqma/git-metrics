@@ -3,10 +3,10 @@ from typing import Tuple, Iterable, List
 
 import matplotlib
 
-from data import columns, zip_with_tail
-from custom_git import for_each_ref, show
-from custom_git import cherry
-from process import proc_to_stdout
+from .data import columns, zip_with_tail
+from .custom_git import for_each_ref, show
+from .custom_git import cherry
+from .process import proc_to_stdout
 
 TAGS_WITH_AUTHOR_DATE_CMD = for_each_ref(
     'refs/tags/**',

@@ -1,5 +1,5 @@
-from data import columns
-from data import zip_with_tail
+from .data import columns
+from .data import zip_with_tail
 
 
 def test_single_column():
